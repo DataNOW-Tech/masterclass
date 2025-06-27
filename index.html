@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataNOW's Exclusive MS SQL Masterclass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: DataNOW Inc. Custom Brand Colors -->
+    <!-- Application Structure Plan: The application transforms the linear slide deck into a non-linear, interactive learning hub. A sticky top navigation allows users to jump between thematic sections. Key interactions include an interactive checklist, tabbed views, a 'Code Explorer', password-protected labs, and an AI-powered playground. The new Gemini-powered section allows users to generate and explain SQL from natural language, bridging the gap between human questions and database code. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Workshop Agenda/Timings -> Goal: Organize/Inform -> Viz: Horizontal Bar Chart (Chart.js) -> Interaction: Hover tooltips -> Justification: Provides a quick, visual overview of the workshop's time allocation.
+        - New Feature: Natural Language to SQL -> Goal: Teach/Translate -> Viz: Text input + Button -> Interaction: User types a request, clicks a button to call Gemini API, which returns a SQL query. -> Justification: Lowers the barrier to entry for beginners and demonstrates SQL logic powerfully.
+        - New Feature: Explain SQL -> Goal: Explain/Educate -> Viz: Button + Text output -> Interaction: User clicks a button to call Gemini API with a SQL query, which returns a natural language explanation. -> Justification: Reinforces learning by deconstructing complex queries into simple steps.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        :root {
+            --brand-blue: #145da1;
+            --brand-red: #ee272a;
+            --brand-yellow: #fed966;
+            --brand-white: #ffffff;
+            --brand-dark: #2d3748;
+            --brand-light-gray: #f7fafc;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--brand-light-gray);
+            color: var(--brand-dark);
+        }
+        .active-nav {
+            color: var(--brand-yellow); 
+            font-weight: 600;
+            position: relative;
+        }
+        .active-nav::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--brand-yellow);
+        }
+        .code-block {
+            background-color: #263238;
+            color: #eceff1;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 250px;
+            max-height: 300px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 300px;
+                max-height: 400px;
+            }
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .interactive-card {
+            background-color: var(--brand-white);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        .interactive-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--brand-blue);
+        }
+        .query-playground textarea, #ai-playground-input {
+            background-color: #263238;
+            color: #82aaff;
+            font-family: 'Courier New', Courier, monospace;
+            border: 1px solid #4a5568;
+        }
+        .query-playground button#run-query, #generate-sql-btn {
+            background-color: var(--brand-blue);
+            transition: background-color 0.3s;
+        }
+         .query-playground button#run-query:hover, #generate-sql-btn:hover {
+            background-color: #0f4a81;
+        }
+        .icon-symbol {
+            font-size: 1.5rem;
+            line-height: 1;
+            color: var(--brand-blue);
+        }
+        .locked-answer {
+            background-color: #e2e8f0;
+            border: 2px dashed #94a3b8;
+            color: transparent;
+            user-select: none;
+            filter: blur(4px);
+            transition: all 0.3s ease-in-out;
+        }
+        .unlocked-answer {
+            background-color: #f0fdf4;
+            border: 2px solid #22c55e;
+            filter: blur(0);
+            color: inherit;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: var(--brand-yellow);
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav id="navbar" class="bg-[var(--brand-blue)] sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center flex-shrink-0">
+                    <span class="text-2xl font-bold text-white">DataNOW, Inc.</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#intro" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Introduction</a>
+                        <a href="#setup" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Setup</a>
+                        <a href="#fundamentals" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Fundamentals</a>
+                        <a href="#querying" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Querying</a>
+                        <a href="#playground" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Playground</a>
+                        <a href="#ai-playground" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">AI Playground ✨</a>
+                        <a href="#lab" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">SSMS Lab</a>
+                        <a href="#activity" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Activity</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="intro" class="py-16 sm:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center fade-in-section">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-[var(--brand-dark)] tracking-tight">DataNOW's Exclusive MS SQL Masterclass</h1>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-700">This interactive guide translates a 3-hour workshop into a self-paced learning experience, now enhanced with AI-powered tools to accelerate your learning.</p>
+                <div class="mt-8">
+                    <button id="export-pdf-btn" class="bg-[var(--brand-red)] text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition">
+                        📄 Export Lecture to PDF
+                    </button>
+                </div>
+                 <div class="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-brand-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-lg font-semibold text-[var(--brand-dark)]">Why Learn SQL?</h3>
+                        <div class="flex justify-center items-center space-x-6 mt-4 text-gray-600">
+                             <div class="text-center">
+                                <span class="text-4xl">📊</span>
+                                <p class="text-sm font-medium">Analysts</p>
+                            </div>
+                            <div class="text-center">
+                                <span class="text-4xl">🔬</span>
+                                <p class="text-sm font-medium">Scientists</p>
+                            </div>
+                             <div class="text-center">
+                                <span class="text-4xl">⚙️</span>
+                                <p class="text-sm font-medium">Engineers</p>
+                            </div>
+                        </div>
+                        <p class="mt-4 text-gray-700">SQL is the universal language of data, empowering you to uncover insights from raw information.</p>
+                    </div>
+                    <div class="bg-brand-white p-6 rounded-lg shadow-lg md:col-span-2">
+                        <h3 class="text-lg font-semibold text-[var(--brand-dark)] mb-4">Workshop Pacing Guide</h3>
+                        <p class="text-sm text-gray-500 mb-2">This chart visualizes the time allocation for each major topic, giving you an idea of their relative depth.</p>
+                        <div class="chart-container">
+                            <canvas id="agendaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="setup" class="py-16 sm:py-20 bg-gray-100">
+             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Your Development Environment</h2>
+                    <p class="mt-4 text-lg text-gray-700">Before writing queries, you need the right tools. This section guides you through installing the SQL Server engine and the Management Studio (SSMS).</p>
+                </div>
+                <div class="mt-12 space-y-8">
+                    <div class="bg-brand-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold text-[var(--brand-dark)]">Setup Checklist</h3>
+                        <div class="mt-4 space-y-4">
+                             <details class="group bg-brand-white rounded-lg shadow-md">
+                                <summary class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50">
+                                    <span class="flex items-center font-medium text-gray-800"><span class="icon-symbol mr-3">📥</span>Install SQL Server</span>
+                                    <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">&#9654;</span>
+                                </summary>
+                                <div class="p-4 border-t border-gray-200">
+                                    <p class="text-gray-700">This is the database engine itself—the brain of the operation. Choose the free "Developer" edition.</p>
+                                </div>
+                            </details>
+                            <details class="group bg-brand-white rounded-lg shadow-md">
+                                <summary class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50">
+                                    <span class="flex items-center font-medium text-gray-800"><span class="icon-symbol mr-3">💻</span>Install SSMS</span>
+                                    <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">&#9654;</span>
+                                </summary>
+                                <div class="p-4 border-t border-gray-200">
+                                    <p class="text-gray-700">SQL Server Management Studio is your graphical interface for managing and querying the database.</p>
+                                </div>
+                            </details>
+                            <details class="group bg-brand-white rounded-lg shadow-md">
+                                <summary class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50">
+                                    <span class="flex items-center font-medium text-gray-800"><span class="icon-symbol mr-3">🔗</span>Connect to Server</span>
+                                    <span class="text-gray-500 group-open:rotate-90 transition-transform duration-200">&#9654;</span>
+                                </summary>
+                                <div class="p-4 border-t border-gray-200">
+                                    <p class="text-gray-700">Open SSMS, connect to `localhost` with Windows Authentication to verify the setup.</p>
+                                </div>
+                            </details>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="fundamentals" class="py-16 sm:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Database Fundamentals</h2>
+                    <p class="mt-4 text-lg max-w-3xl mx-auto text-gray-700">To query a database, you must first understand its structure. Use the tabs to explore each fundamental concept.</p>
+                </div>
+
+                <div class="mt-12 max-w-5xl mx-auto">
+                    <div class="mb-4 border-b border-gray-300">
+                        <ul class="flex flex-wrap -mb-px" id="fundamentals-tabs">
+                            <li class="mr-2"><button data-tab="tab-what-is-db" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg font-semibold">What is a Database?</button></li>
+                            <li class="mr-2"><button data-tab="tab-tables-keys" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">Tables & Keys</button></li>
+                            <li class="mr-2"><button data-tab="tab-data-types" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">Data Types</button></li>
+                            <li class="mr-2"><button data-tab="tab-sql-subsets" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">Language Subsets</button></li>
+                            <li class="mr-2"><button data-tab="tab-data-modeling" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">Data Modeling & Analysis</button></li>
+                        </ul>
+                    </div>
+                    <div id="fundamentals-content" class="bg-brand-white p-6 rounded-lg shadow-lg">
+                        <div id="tab-what-is-db" class="fundamentals-tab-content space-y-4"></div>
+                        <div id="tab-tables-keys" class="fundamentals-tab-content hidden space-y-6"></div>
+                        <div id="tab-data-types" class="fundamentals-tab-content hidden space-y-4"></div>
+                        <div id="tab-sql-subsets" class="fundamentals-tab-content hidden space-y-4"></div>
+                        <div id="tab-data-modeling" class="fundamentals-tab-content hidden space-y-6"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="querying" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Talking to Your Data with SQL</h2>
+                    <p class="mt-4 text-lg max-w-3xl mx-auto text-gray-700">This section is a code explorer for the most fundamental SQL commands. Click on a command to see its syntax, an explanation, and a practical example.</p>
+                </div>
+                <div class="mt-12 md:flex md:space-x-8">
+                    <div class="md:w-1/4 mb-8 md:mb-0">
+                        <div class="space-y-2">
+                            <button data-command="select" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">SELECT & FROM</button>
+                            <button data-command="where" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">WHERE</button>
+                            <button data-command="orderby" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">ORDER BY</button>
+                            <button data-command="andor" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">AND, OR, IN</button>
+                            <button data-command="join" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">INNER JOIN</button>
+                        </div>
+                    </div>
+                    <div class="md:w-3/4 bg-brand-white p-6 rounded-lg shadow-lg">
+                        <div id="command-display" class="space-y-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="playground" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section query-playground">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Interactive Playground</h2>
+                    <p class="mt-4 text-lg text-gray-700">Time to code! Try writing queries in the editor below to solve the challenges. Click "Run Query" to see your results instantly.</p>
+                </div>
+                <div id="playground-container" class="mt-12 bg-brand-white p-6 rounded-lg shadow-lg">
+                </div>
+            </div>
+        </section>
+        
+        <section id="ai-playground" class="py-16 sm:py-20">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">AI Playground ✨</h2>
+                    <p class="mt-4 text-lg text-gray-700">Translate plain English into SQL. Type a request like "show all employees from the sales department" and let the AI generate the query for you.</p>
+                </div>
+                <div class="mt-12 bg-brand-white p-6 rounded-lg shadow-lg">
+                    <h3 class="font-semibold mb-2">Available Tables:</h3>
+                    <div class="grid md:grid-cols-3 gap-4 mb-4 text-xs">
+                        <div><strong>employees</strong> (id, name, department, salary)</div>
+                        <div><strong>products</strong> (product_id, product_name, category)</div>
+                        <div><strong>sales</strong> (sale_id, product_id, quantity, sale_date)</div>
+                    </div>
+                    <div>
+                        <label for="ai-playground-input" class="font-semibold block mb-2">Your Request:</label>
+                        <textarea id="ai-playground-input" rows="3" class="w-full p-2 rounded-md" placeholder="e.g., show me the names of all products in the furniture category"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <button id="generate-sql-btn" class="w-full flex items-center justify-center text-white font-semibold px-4 py-2 rounded-md disabled:bg-gray-400">
+                           <span id="generate-sql-btn-text">Generate SQL ✨</span>
+                           <div id="generate-sql-spinner" class="spinner hidden"></div>
+                        </button>
+                    </div>
+                     <div id="ai-output-container" class="mt-6 hidden">
+                        <h3 class="font-semibold mb-2">Generated SQL:</h3>
+                        <div id="generated-sql" class="code-block"></div>
+                        <div class="mt-4">
+                             <button id="explain-sql-btn" class="w-full flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-md disabled:bg-gray-400">
+                               <span id="explain-sql-btn-text">Explain this Query ✨</span>
+                               <div id="explain-sql-spinner" class="spinner hidden"></div>
+                            </button>
+                        </div>
+                        <div id="explanation-output" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg hidden"></div>
+                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="lab" class="py-16 sm:py-20 bg-gray-100">
+             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Hands-On Lab (SSMS)</h2>
+                    <p class="mt-4 text-lg text-gray-700">For a full database experience, download the script below, run it in SSMS, and then tackle the challenges.</p>
+                </div>
+                <div class="mt-12 space-y-8">
+                    <div class="bg-brand-white p-6 rounded-lg shadow-lg">
+                        <h3 class="text-xl font-semibold text-[var(--brand-dark)]">Step 1: Create the Sample Database</h3>
+                        <div class="mt-4">
+                            <a href="javascript:void(0)" id="download-script" class="inline-block bg-[var(--brand-blue)] text-white font-semibold px-4 py-2 rounded-md hover:opacity-90">Download CreateSampleDB.sql</a>
+                        </div>
+                    </div>
+                    <div id="lab-challenges" class="space-y-8"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="activity" class="py-16 sm:py-20">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+               <div class="text-center">
+                   <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Activity for Next Week</h2>
+                   <p class="mt-4 text-lg text-gray-700">Apply what you've learned! Use the `SampleDB` database from the SSMS Lab to solve these challenges. Enter the instructor password to unlock the answers.</p>
+               </div>
+               <div id="activity-container" class="mt-12">
+               </div>
+           </div>
+       </section>
+    </main>
+    
+    <footer class="bg-[var(--brand-dark)]">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-300">
+            <p>DataNOW's Exclusive MS SQL Masterclass | A Learning Resource</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const { jsPDF } = window.jspdf;
+
+    const brandColors = {
+        blue: '#145da1',
+        red: '#ee272a',
+        yellow: '#fed966',
+    };
+
+    const agendaData = {
+        labels: ['Welcome', 'Setup', 'Fundamentals', 'Playground', 'AI Playground', 'SSMS Lab', 'Activity'],
+        data: [15, 20, 45, 30, 20, 20, 10],
+    };
+    
+    const commandsData = {
+        select: { title: 'SELECT & FROM', description: 'Specifies the columns you want (`SELECT`) from a specific table (`FROM`).', code: `SELECT CustomerName, City\nFROM Customers;` },
+        where: { title: 'WHERE', description: 'Filters data to show only rows that meet a condition.', code: `SELECT *\nFROM Products\nWHERE Price > 50;` },
+        orderby: { title: 'ORDER BY', description: 'Sorts your results. Use `ASC` for ascending (default) or `DESC` for descending.', code: `SELECT ProductName, Price\nFROM Products\nORDER BY Price DESC;` },
+        andor: { title: 'AND, OR, IN', description: 'Combine multiple conditions. `AND` needs all to be true, `OR` needs one to be true, `IN` checks against a list of values.', code: `SELECT *\nFROM Customers\nWHERE Country = 'Germany' AND City = 'Berlin';` },
+        join: { title: 'INNER JOIN', description: 'Combines rows from two tables based on a related column between them.', code: `SELECT o.OrderID, c.CustomerName\nFROM Orders AS o\nINNER JOIN Customers AS c ON o.CustomerID = c.CustomerID;` }
+    };
+    
+    const labChallengesData = [
+        {
+            title: 'Lab Task 1: Simple SELECTs',
+            challenges: [
+                { prompt: "1. See all information about all customers.", solution: "SELECT * FROM Customers;" },
+                { prompt: "2. See the `ProductName` and `Price` for all products.", solution: "SELECT ProductName, Price FROM Products;" },
+                { prompt: "3. See all orders placed.", solution: "SELECT * FROM Orders;" }
+            ]
+        },
+        {
+            title: 'Lab Task 2: Filtering and Sorting',
+            challenges: [
+                { prompt: "1. Find all customers who live in the 'USA'.", solution: "SELECT * FROM Customers WHERE Country = 'USA';" },
+                { prompt: "2. Find all products that cost more than $50.", solution: "SELECT * FROM Products WHERE Price > 50;" },
+                { prompt: "3. List all products, sorted from most expensive to least expensive.", solution: "SELECT * FROM Products ORDER BY Price DESC;" }
+            ]
+        },
+        {
+            title: 'Lab Task 3: Challenge - The JOIN',
+            challenges: [
+                { prompt: "1. Show the `OrderDate` and the `CustomerName` for each order.", hint: "You'll need to join the Orders and Customers tables on their common CustomerID column.", solution: "SELECT o.OrderDate, c.CustomerName\nFROM Orders AS o\nINNER JOIN Customers AS c ON o.CustomerID = c.CustomerID;" }
+            ]
+        },
+        {
+            title: 'Lab Task 4: Aggregation',
+            challenges: [
+                { prompt: "1. Count the number of customers in each country.", solution: "SELECT Country, COUNT(CustomerID) AS NumberOfCustomers\nFROM Customers\nGROUP BY Country;" },
+                { prompt: "2. What is the average price of all products?", solution: "SELECT AVG(Price) AS AveragePrice\nFROM Products;" },
+            ]
+        },
+        {
+            title: 'Lab Task 5: Advanced JOINs and Aggregation',
+            challenges: [
+                { prompt: "1. List each customer and the total number of orders they have placed.", hint: "You'll need to `JOIN` Customers and Orders, then `COUNT` the orders and `GROUP BY` the customer.", solution: "SELECT c.CustomerName, COUNT(o.OrderID) AS TotalOrders\nFROM Customers c\nLEFT JOIN Orders o ON c.CustomerID = o.CustomerID\nGROUP BY c.CustomerName;" },
+                { prompt: "2. What is the name of the most expensive product that has been ordered?", hint: "This requires joining Products and Orders, ordering by price, and taking the top result.", solution: "SELECT TOP 1 p.ProductName\nFROM Products p\nJOIN Orders o ON p.ProductID = o.ProductID\nORDER BY p.Price DESC;" }
+            ]
+        }
+    ];
+
+    const sqlScriptContent = `-- SQL Masterclass Sample Database Script
+-- Run this in SSMS to create the database and tables for the lab.
+CREATE DATABASE SampleDB;
+GO
+USE SampleDB;
+GO
+CREATE TABLE Customers (CustomerID INT PRIMARY KEY IDENTITY(1,1), CustomerName NVARCHAR(100) NOT NULL, City NVARCHAR(50), Country NVARCHAR(50));
+CREATE TABLE Products (ProductID INT PRIMARY KEY IDENTITY(1,1), ProductName NVARCHAR(100) NOT NULL, Price DECIMAL(10, 2));
+CREATE TABLE Orders (OrderID INT PRIMARY KEY IDENTITY(1,1), ProductID INT, CustomerID INT, OrderDate DATETIME, FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID));
+INSERT INTO Customers (CustomerName, City, Country) VALUES ('Alfreds Futterkiste', 'Berlin', 'Germany'), ('Ana Trujillo Emparedados y helados', 'México D.F.', 'Mexico'), ('Antonio Moreno Taquería', 'México D.F.', 'Mexico'), ('Around the Horn', 'London', 'UK'), ('The Big Cheese', 'Portland', 'USA'), ('Old World Delicatessen', 'Anchorage', 'USA');
+INSERT INTO Products (ProductName, Price) VALUES ('Chai', 18.00), ('Chang', 19.00), ('Aniseed Syrup', 10.00), ('Mishi Kobe Niku', 97.00), ('Tofu', 23.25);
+INSERT INTO Orders (OrderID, ProductID, CustomerID, OrderDate) VALUES (1, 1, 1, '2023-01-15'),(2, 3, 5, '2023-01-16'),(3, 2, 4, '2023-01-18'),(4, 5, 2, '2023-01-20'),(5, 4, 6, '2023-01-21');
+SELECT 'SampleDB created and populated successfully!';
+GO`;
+
+    const playgroundData = {
+        employees: [
+            { id: 1, name: 'Alice', department: 'Sales', salary: 70000 },
+            { id: 2, name: 'Bob', department: 'Engineering', salary: 95000 },
+            { id: 3, name: 'Charlie', department: 'Engineering', salary: 110000 },
+            { id: 4, name: 'Diana', department: 'Sales', salary: 85000 },
+            { id: 5, name: 'Eve', department: 'Marketing', salary: 60000 },
+        ],
+        products: [
+            { product_id: 101, product_name: 'Laptop', category: 'Electronics' },
+            { product_id: 102, product_name: 'Mouse', category: 'Electronics' },
+            { product_id: 201, product_name: 'Desk Chair', category: 'Furniture' },
+            { product_id: 202, product_name: 'Standing Desk', category: 'Furniture' },
+        ],
+        sales: [
+            { sale_id: 1, product_id: 101, quantity: 5, sale_date: '2024-01-05' },
+            { sale_id: 2, product_id: 102, quantity: 20, sale_date: '2024-01-05' },
+            { sale_id: 3, product_id: 201, quantity: 10, sale_date: '2024-01-06' },
+            { sale_id: 4, product_id: 101, quantity: 3, sale_date: '2024-01-07' },
+            { sale_id: 5, product_id: 202, quantity: 2, sale_date: '2024-01-07' },
+        ],
+        challenges: [
+            {
+                question: "Select all employees who work in the 'Sales' department.",
+                tables: ['employees'],
+                validate: (query) => /SELECT\s+\*\s+FROM\s+employees\s+WHERE\s+department\s*=\s*'Sales'/i.test(query.trim()),
+                getResults: () => playgroundData.employees.filter(e => e.department === 'Sales'),
+            },
+            {
+                question: "Find all employees with a salary greater than 90000.",
+                tables: ['employees'],
+                validate: (query) => /SELECT\s+\*\s+FROM\s+employees\s+WHERE\s+salary\s*>\s*90000/i.test(query.trim()),
+                getResults: () => playgroundData.employees.filter(e => e.salary > 90000),
+            },
+            {
+                question: "Show each sale with its corresponding product name.",
+                tables: ['products', 'sales'],
+                validate: (query) => /SELECT\s+.*FROM\s+sales\s+.*JOIN\s+products/i.test(query.replace(/\n/g, " ")),
+                getResults: () => playgroundData.sales.map(s => {
+                    const product = playgroundData.products.find(p => p.product_id === s.product_id);
+                    return { sale_id: s.sale_id, product_name: product.product_name, quantity: s.quantity };
+                }),
+            },
+            {
+                question: "Count the number of products in each category.",
+                tables: ['products'],
+                validate: (query) => /SELECT\s+category,\s*COUNT\(.*?\)\s+FROM\s+products\s+GROUP\s+BY\s+category/i.test(query.replace(/\n/g, " ")),
+                getResults: () => [{category: 'Electronics', count: 2}, {category: 'Furniture', count: 2}],
+            },
+            {
+                question: "Calculate the total quantity of items sold for each product.",
+                tables: ['products', 'sales'],
+                validate: (query) => /SELECT\s+.*product_name,\s*SUM\(.*?quantity.*?\)\s+FROM\s+sales\s+.*JOIN\s+products\s+.*GROUP\s+BY\s+.*product_name/i.test(query.replace(/\n/g, " ")),
+                getResults: () => [
+                    { product_name: 'Laptop', total_quantity: 8 },
+                    { product_name: 'Mouse', total_quantity: 20 },
+                    { product_name: 'Desk Chair', total_quantity: 10 },
+                    { product_name: 'Standing Desk', total_quantity: 2 },
+                ],
+            }
+        ]
+    };
+    let currentPlaygroundChallenge = 0;
+
+    const activityData = [
+        { question: "Find the name of the customer who placed OrderID 3.", answer: `SELECT C.CustomerName FROM Customers AS C JOIN Orders AS O ON C.CustomerID = O.CustomerID WHERE O.OrderID = 3;` },
+        { question: "List all products with a price between $15 and $30.", answer: `SELECT * FROM Products WHERE Price BETWEEN 15 AND 30;` },
+        { question: "Find all customers from Mexico or Germany.", answer: `SELECT * FROM Customers WHERE Country IN ('Mexico', 'Germany');` },
+        { question: "List all customers whose name starts with 'A'.", answer: `SELECT * FROM Customers WHERE CustomerName LIKE 'A%';` },
+        { question: "How many orders has each customer placed?", answer: `SELECT c.CustomerName, COUNT(o.OrderID) AS NumberOfOrders FROM Customers c LEFT JOIN Orders o ON c.CustomerID = o.CustomerID GROUP BY c.CustomerName;`},
+        { question: "What is the average price of all products?", answer: `SELECT AVG(Price) AS AveragePrice FROM Products;`},
+        { question: "List the names of products that have been ordered.", answer: `SELECT DISTINCT p.ProductName FROM Products p JOIN Orders o ON o.ProductID = p.ProductID;`},
+        { question: "Find the most expensive product.", answer: `SELECT * FROM Products ORDER BY Price DESC LIMIT 1;`},
+        { question: "Add a new customer 'DataNOW Inc.' located in 'Toronto', 'Canada'.", answer: `INSERT INTO Customers (CustomerName, City, Country) VALUES ('DataNOW Inc.', 'Toronto', 'Canada');`},
+        { question: "Update the price of 'Chai' to $20.00.", answer: `UPDATE Products SET Price = 20.00 WHERE ProductName = 'Chai';`},
+    ];
+    let currentActivityIndex = 0;
+    const labPassword = "LabAccess24";
+    const activityPassword = "NextWeekSQL!*";
+
+    const animationObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in-section').forEach(section => animationObserver.observe(section));
+
+    const sections = document.querySelectorAll('main section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 150) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active-nav');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active-nav');
+            }
+        });
+    });
+
+    const ctx = document.getElementById('agendaChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: agendaData.labels,
+            datasets: [{
+                label: 'Time (minutes)',
+                data: agendaData.data,
+                backgroundColor: 'rgba(20, 93, 161, 0.7)',
+                borderColor: brandColors.blue,
+                borderWidth: 1
+            }]
+        },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+
+    const fundamentalsTabs = document.getElementById('fundamentals-tabs');
+    const fundamentalsTabButtons = fundamentalsTabs.querySelectorAll('.fundamentals-tab-button');
+    const fundamentalsTabContents = document.getElementById('fundamentals-content').querySelectorAll('.fundamentals-tab-content');
+    
+    document.querySelector('#tab-what-is-db').innerHTML = `<h3 class="text-xl font-semibold">Like a Digital Filing Cabinet</h3><p>A relational database is an organized collection of structured data. Think of it as a highly efficient digital filing cabinet where information is stored in a way that makes it easy to find, manage, and relate to other pieces of information.</p><div class="text-center mt-4"><span class="text-6xl">🗄️</span></div>`;
+    document.querySelector('#tab-tables-keys').innerHTML = `<h3 class="text-xl font-semibold">Tables, Rows, Columns, and Keys</h3><p>The structure of a database is built on a few core components.</p><div class="mt-4 space-y-4"><div class="p-4 bg-gray-50 rounded-lg"><strong>Tables, Rows, and Columns:</strong> Much like a spreadsheet, a table holds data. Each row is a single record (like a person), and each column is a specific piece of information about that record (like a first name).</div><div class="grid md:grid-cols-2 gap-4"><div class="p-4 bg-gray-50 rounded-lg"><h4 class="font-semibold text-lg">Primary Key (PK) 🔑</h4><p>A unique identifier for each row in a table. It cannot be empty and must be unique. Think of it like a Student ID number.</p></div><div class="p-4 bg-gray-50 rounded-lg"><h4 class="font-semibold text-lg">Foreign Key (FK) 🔗</h4><p>A key used to link two tables together. It's a field in one table that refers to the Primary Key in another table.</p></div></div></div>`;
+    document.querySelector('#tab-data-types').innerHTML = `<h3 class="text-xl font-semibold">Defining Your Data</h3><p>Every column has a 'data type' which tells the database what kind of data to expect.</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4"><div class="p-4 bg-gray-50 rounded-lg text-center"><span class="text-4xl">🔤</span><h4 class="font-semibold mt-2">VARCHAR(n)</h4><p class="text-sm">For text.</p></div><div class="p-4 bg-gray-50 rounded-lg text-center"><span class="text-4xl">🔢</span><h4 class="font-semibold mt-2">INT</h4><p class="text-sm">For whole numbers.</p></div><div class="p-4 bg-gray-50 rounded-lg text-center"><span class="text-4xl">💰</span><h4 class="font-semibold mt-2">DECIMAL(p,s)</h4><p class="text-sm">For currency.</p></div><div class="p-4 bg-gray-50 rounded-lg text-center"><span class="text-4xl">📅</span><h4 class="font-semibold mt-2">DATETIME</h4><p class="text-sm">For dates & times.</p></div></div>`;
+    document.querySelector('#tab-sql-subsets').innerHTML = `<h3 class="text-xl font-semibold text-[var(--brand-dark)]">The Flavors of SQL</h3><p>SQL is a language with different parts for different jobs. Understanding these subsets helps clarify what your commands are doing.</p><div class="grid md:grid-cols-3 gap-6 mt-6 text-center"><div class="interactive-card p-6 rounded-lg shadow-md"><span class="text-4xl">🔎</span><h4 class="text-lg font-bold text-[var(--brand-blue)] mt-2">DQL</h4><p class="font-semibold">Data Query Language</p><p class="text-sm mt-2">Used to ASK for data.</p><p class="mt-4 font-mono text-lg font-bold">SELECT</p></div><div class="interactive-card p-6 rounded-lg shadow-md"><span class="text-4xl">✏️</span><h4 class="text-lg font-bold text-green-600 mt-2">DML</h4><p class="font-semibold">Data Manipulation Language</p><p class="text-sm mt-2">Used to CHANGE the data.</p><p class="mt-4 font-mono text-lg font-bold">INSERT, UPDATE</p></div><div class="interactive-card p-6 rounded-lg shadow-md"><span class="text-4xl">🛠️</span><h4 class="text-lg font-bold text-[var(--brand-red)] mt-2">DDL</h4><p class="font-semibold">Data Definition Language</p><p class="text-sm mt-2">Used to DEFINE the structure.</p><p class="mt-4 font-mono text-lg font-bold">CREATE, ALTER</p></div></div>`;
+    document.querySelector('#tab-data-modeling').innerHTML = `<div><h3 class="text-xl font-semibold text-[var(--brand-dark)]">Dimension vs. Fact Tables</h3><p class="mt-2 text-gray-600">In data analysis, we often organize tables into two types:</p><div class="grid md:grid-cols-2 gap-6 mt-4"><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-lg text-gray-800">Dimension Tables</h4><p>They describe the "who, what, where, when" - the context. Think of them as descriptive lookup tables.</p><ul class="list-disc list-inside mt-2 text-sm"><li>Example: \`Customers\`, \`Products\`, \`Calendar\`</li><li>Contains: Descriptive attributes (Name, Category, Address)</li></ul></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-lg text-gray-800">Fact Tables</h4><p>They store the measurements or metrics of a business process. They contain foreign keys to dimension tables.</p><ul class="list-disc list-inside mt-2 text-sm"><li>Example: \`Sales\`, \`WebsiteClicks\`, \`Orders\`</li><li>Contains: Measurable data (Quantity, Price, Duration)</li></ul></div></div></div><div><h3 class="text-xl font-semibold text-[var(--brand-dark)] mt-6">JOINs: Connecting Tables</h3><p class="mt-2 text-gray-600">JOINs are used to combine rows from two or more tables based on a related column. The two most common are \`INNER JOIN\` and \`LEFT JOIN\`.</p><div class="mt-4 text-center"><img src="https://www.dofactory.com/img/sql/sql-joins.png" alt="Venn diagrams comparing SQL JOINs" class="mx-auto rounded-lg shadow-md max-w-full h-auto"></div></div><div><h3 class="text-xl font-semibold text-[var(--brand-dark)] mt-6">Aggregations: Summarizing Data</h3><p class="mt-2 text-gray-600">Aggregate functions perform a calculation on a set of values and return a single value. They are often used with the \`GROUP BY\` clause.</p><div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 text-center"><div class="bg-gray-50 p-4 rounded-lg"><p class="font-mono text-lg font-bold">COUNT()</p><p class="text-sm">Counts rows</p></div><div class="bg-gray-50 p-4 rounded-lg"><p class="font-mono text-lg font-bold">SUM()</p><p class="text-sm">Sums values</p></div><div class="bg-gray-50 p-4 rounded-lg"><p class="font-mono text-lg font-bold">AVG()</p><p class="text-sm">Averages values</p></div><div class="bg-gray-50 p-4 rounded-lg"><p class="font-mono text-lg font-bold">MIN/MAX()</p><p class="text-sm">Finds min/max value</p></div></div></div>`;
+
+    fundamentalsTabs.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            const tabId = e.target.getAttribute('data-tab');
+            fundamentalsTabButtons.forEach(btn => {
+                btn.classList.remove('border-[var(--brand-blue)]', 'text-[var(--brand-blue)]');
+                btn.classList.add('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+            });
+            e.target.classList.add('border-[var(--brand-blue)]', 'text-[var(--brand-blue)]');
+            e.target.classList.remove('border-transparent');
+            fundamentalsTabContents.forEach(content => content.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+    });
+    fundamentalsTabButtons[0].click();
+    
+    const commandButtonsContainer = document.querySelector('#querying .md\\:w-1\\/4 .space-y-2');
+    const commandDisplay = document.getElementById('command-display');
+    commandButtonsContainer.addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON') {
+            const command = e.target.dataset.command;
+            commandButtonsContainer.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('bg-[var(--brand-blue)]', 'text-white');
+                btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
+            });
+            e.target.classList.add('bg-[var(--brand-blue)]', 'text-white');
+            e.target.classList.remove('bg-gray-200');
+            const data = commandsData[command];
+            commandDisplay.innerHTML = `<h3 class="text-xl font-semibold">${data.title}</h3><p>${data.description}</p><div class="code-block">${data.code.replace(/</g, "&lt;")}</div>`;
+        }
+    });
+    commandButtonsContainer.querySelector('button').click();
+
+    const labContainer = document.getElementById('lab-challenges');
+    labChallengesData.forEach((taskGroup, groupIndex) => {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'bg-brand-white p-6 rounded-lg shadow-lg';
+        const titleEl = document.createElement('h3');
+        titleEl.className = 'text-xl font-semibold text-[var(--brand-dark)] mb-4';
+        titleEl.textContent = taskGroup.title;
+        groupEl.appendChild(titleEl);
+
+        const questionsContainer = document.createElement('div');
+        questionsContainer.className = 'space-y-3 mb-4';
+        taskGroup.challenges.forEach(challenge => {
+             questionsContainer.innerHTML += `<p class="font-medium">${challenge.prompt}</p>`;
+        });
+        groupEl.appendChild(questionsContainer);
+        
+        const solutionsDiv = document.createElement('div');
+        solutionsDiv.className = 'locked-answer p-4 rounded-lg';
+        solutionsDiv.setAttribute('data-answer-id', `lab-${groupIndex}`);
+        const challengesSolutions = document.createElement('div');
+        challengesSolutions.className = 'space-y-3';
+        taskGroup.challenges.forEach(challenge => {
+            let hintHTML = challenge.hint ? `<p class="text-sm text-gray-500 mb-1 italic"><strong>Hint:</strong> ${challenge.hint}</p>` : '';
+            challengesSolutions.innerHTML += `
+                <div>
+                    <p class="font-medium">${challenge.prompt}</p>
+                    ${hintHTML}
+                    <div class="code-block">${challenge.solution.replace(/</g, "&lt;")}</div>
+                </div>
+            `;
+        });
+        solutionsDiv.appendChild(challengesSolutions);
+        groupEl.appendChild(solutionsDiv);
+
+        const unlockDiv = document.createElement('div');
+        unlockDiv.className = 'mt-4 space-y-2 sm:space-y-0 sm:flex sm:space-x-2';
+        unlockDiv.setAttribute('data-unlock-id', `lab-${groupIndex}`);
+        unlockDiv.innerHTML = `
+            <input type="password" placeholder="Enter password for solutions" class="w-full sm:flex-grow p-2 border rounded-md">
+            <button class="w-full sm:w-auto bg-[var(--brand-blue)] hover:bg-[#0f4a81] text-white font-semibold px-4 py-2 rounded-md">Unlock</button>
+        `;
+        groupEl.appendChild(unlockDiv);
+        const errorEl = document.createElement('p');
+        errorEl.className = 'text-red-600 text-sm mt-1 h-4';
+        errorEl.setAttribute('data-error-id', `lab-${groupIndex}`);
+        groupEl.appendChild(errorEl);
+
+        labContainer.appendChild(groupEl);
+    });
+
+    document.getElementById('download-script').addEventListener('click', () => {
+        const blob = new Blob([sqlScriptContent], { type: 'text/sql' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'CreateSampleDB.sql';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    const playgroundContainer = document.getElementById('playground-container');
+    
+    function renderPlayground() {
+        const challenge = playgroundData.challenges[currentPlaygroundChallenge];
+        let tablesHTML = '';
+        challenge.tables.forEach(tableName => {
+            tablesHTML += `<div class="overflow-x-auto"><h5 class="font-semibold mb-2">\`${tableName}\` Table</h5>${renderTable(playgroundData[tableName])}</div>`;
+        });
+
+        playgroundContainer.innerHTML = `
+            <div>
+                <h4 class="font-semibold text-lg mb-2">Challenge #${currentPlaygroundChallenge + 1} of ${playgroundData.challenges.length}</h4>
+                <p class="mb-4 text-gray-700">${challenge.question}</p>
+                <div class="grid md:grid-cols-2 gap-4">${tablesHTML}</div>
+            </div>
+            <div class="mt-6">
+                <textarea id="query-input" rows="4" class="w-full p-2 rounded-md" placeholder="SELECT ..."></textarea>
+                <div id="feedback" class="text-sm my-2 h-5 font-medium"></div>
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                    <button id="run-query" class="w-full text-white font-semibold px-4 py-2 rounded-md">Run Query</button>
+                    <button id="reset-query" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded-md">Reset</button>
+                    <button id="next-challenge" class="hidden lg:block w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md">Next Challenge &rarr;</button>
+                </div>
+                 <button id="next-challenge-mobile" class="hidden lg:hidden mt-2 w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md">Next Challenge &rarr;</button>
+            </div>
+            <div class="mt-6">
+                <h5 class="font-semibold mb-2">Result</h5>
+                <div id="result-table">
+                    <p class="text-gray-500 italic">Your query results will appear here.</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderTable(data) {
+        if (!data || data.length === 0) return '<p class="text-gray-500 italic">No results.</p>';
+        const headers = Object.keys(data[0]);
+        let table = '<div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead><tr class="bg-gray-100">';
+        headers.forEach(h => table += `<th class="p-2">${h}</th>`);
+        table += '</tr></thead><tbody>';
+        data.forEach(row => {
+            table += '<tr class="border-b">';
+            headers.forEach(h => table += `<td class="p-2">${row[h]}</td>`);
+            table += '</tr>';
+        });
+        table += '</tbody></table></div>';
+        return table;
+    }
+
+    function runQuery() {
+        const query = document.getElementById('query-input').value;
+        const feedbackEl = document.getElementById('feedback');
+        const resultTable = document.getElementById('result-table');
+        const nextBtn = document.getElementById('next-challenge');
+        const nextBtnMobile = document.getElementById('next-challenge-mobile');
+        const challenge = playgroundData.challenges[currentPlaygroundChallenge];
+
+        if (challenge.validate(query)) {
+            feedbackEl.textContent = 'Correct! Well done.';
+            feedbackEl.className = 'text-sm my-2 h-5 font-medium text-green-600';
+            nextBtn.classList.remove('hidden');
+            nextBtnMobile.classList.remove('hidden');
+            const results = challenge.getResults();
+            resultTable.innerHTML = renderTable(results);
+        } else {
+            feedbackEl.textContent = 'Not quite right. Check your syntax and logic!';
+            feedbackEl.className = 'text-sm my-2 h-5 font-medium text-red-600';
+            nextBtn.classList.add('hidden');
+            nextBtnMobile.classList.add('hidden');
+            resultTable.innerHTML = '<p class="text-gray-500 italic">Your query results will appear here.</p>';
+        }
+    }
+
+    function resetQuery() {
+        document.getElementById('query-input').value = '';
+        const feedbackEl = document.getElementById('feedback');
+        feedbackEl.textContent = '';
+        feedbackEl.className = 'text-sm my-2 h-5 font-medium';
+        document.getElementById('result-table').innerHTML = '<p class="text-gray-500 italic">Your query results will appear here.</p>';
+        document.getElementById('next-challenge').classList.add('hidden');
+        document.getElementById('next-challenge-mobile').classList.add('hidden');
+    }
+    
+    function handlePlaygroundClick(e) {
+        if (e.target.id === 'run-query') runQuery();
+        if (e.target.id === 'reset-query') resetQuery();
+        if (e.target.id === 'next-challenge' || e.target.id === 'next-challenge-mobile') {
+            currentPlaygroundChallenge = (currentPlaygroundChallenge + 1) % playgroundData.challenges.length;
+            renderPlayground();
+        }
+    }
+    
+    renderPlayground();
+    playgroundContainer.addEventListener('click', handlePlaygroundClick);
+
+    const activityContainer = document.getElementById('activity-container');
+    
+    function renderActivity() {
+        const activity = activityData[currentActivityIndex];
+        activityContainer.innerHTML = `
+            <div class="bg-brand-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="font-semibold text-lg text-gray-800">${currentActivityIndex + 1}. ${activity.question}</h4>
+                    <span class="text-sm font-medium text-gray-500">${currentActivityIndex + 1} / ${activityData.length}</span>
+                </div>
+                <div class="mt-4 p-4 rounded-lg locked-answer" data-answer-id="${currentActivityIndex}">
+                    <div class="code-block">${activity.answer.replace(/</g, "&lt;")}</div>
+                </div>
+                <div class="mt-4 space-y-2 sm:space-y-0 sm:flex sm:space-x-2" data-unlock-id="${currentActivityIndex}">
+                    <input type="password" placeholder="Enter password to unlock" class="w-full sm:flex-grow p-2 border rounded-md">
+                    <button class="w-full sm:w-auto bg-[var(--brand-blue)] hover:bg-[#0f4a81] text-white font-semibold px-4 py-2 rounded-md">Unlock</button>
+                </div>
+                <p class="text-red-600 text-sm mt-1 h-4" data-error-id="${currentActivityIndex}"></p>
+            </div>
+            <div class="flex justify-between mt-4">
+                <button id="prev-activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">&larr; Previous</button>
+                <button id="next-activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">Next &rarr;</button>
+            </div>
+        `;
+        document.getElementById('prev-activity').disabled = currentActivityIndex === 0;
+        document.getElementById('next-activity').disabled = currentActivityIndex === activityData.length - 1;
+    }
+
+    function handlePasswordUnlock(e, password) {
+        const wrapper = e.target.closest('[data-unlock-id]');
+        if (!wrapper || !e.target.matches('button')) return;
+        
+        const id = wrapper.dataset.unlockId;
+        const input = wrapper.querySelector('input');
+        const answerEl = document.querySelector(`[data-answer-id="${id}"]`);
+        const errorEl = document.querySelector(`[data-error-id="${id}"]`);
+
+        if (input.value === password) {
+            answerEl.classList.remove('locked-answer');
+            answerEl.classList.add('unlocked-answer');
+            errorEl.textContent = '';
+        } else {
+            errorEl.textContent = 'Wrong password.';
+            input.value = '';
+        }
+    }
+
+    function handlePasswordInput(e) {
+        if(e.target.tagName !== 'INPUT' || e.target.type !== 'password') return;
+        
+        const wrapper = e.target.closest('[data-unlock-id]');
+        const id = wrapper.dataset.unlockId;
+        const answerEl = document.querySelector(`[data-answer-id="${id}"]`);
+
+        if(e.target.value === '') {
+           answerEl.classList.add('locked-answer');
+           answerEl.classList.remove('unlocked-answer');
+        }
+    }
+
+    document.getElementById('lab-challenges').addEventListener('click', e => handlePasswordUnlock(e, labPassword));
+    document.getElementById('lab-challenges').addEventListener('input', handlePasswordInput);
+    
+    const activitySection = document.getElementById('activity-container');
+    activitySection.addEventListener('click', e => {
+        handlePasswordUnlock(e, activityPassword);
+        if (e.target.id === 'next-activity' && currentActivityIndex < activityData.length - 1) {
+            currentActivityIndex++;
+            renderActivity();
+        }
+        if (e.target.id === 'prev-activity' && currentActivityIndex > 0) {
+            currentActivityIndex--;
+            renderActivity();
+        }
+    });
+    activitySection.addEventListener('input', handlePasswordInput);
+    
+    // AI Playground Logic
+    const generateSqlBtn = document.getElementById('generate-sql-btn');
+    const explainSqlBtn = document.getElementById('explain-sql-btn');
+
+    async function callGemini(prompt) {
+        const apiKey = ""; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+             if (result.candidates && result.candidates.length > 0 &&
+              result.candidates[0].content && result.candidates[0].content.parts &&
+              result.candidates[0].content.parts.length > 0) {
+                return result.candidates[0].content.parts[0].text;
+            }
+        } catch (error) {
+            console.error("Gemini API call failed:", error);
+            return "Error: Could not connect to the AI service.";
+        }
+        return "Sorry, I couldn't generate a response.";
+    }
+
+    generateSqlBtn.addEventListener('click', async () => {
+        const userInput = document.getElementById('ai-playground-input').value;
+        if (!userInput.trim()) return;
+
+        const btnText = document.getElementById('generate-sql-btn-text');
+        const spinner = document.getElementById('generate-sql-spinner');
+        const outputContainer = document.getElementById('ai-output-container');
+        const sqlOutput = document.getElementById('generated-sql');
+        const explanationOutput = document.getElementById('explanation-output');
+
+        btnText.classList.add('hidden');
+        spinner.classList.remove('hidden');
+        generateSqlBtn.disabled = true;
+
+        const schema = `employees(id, name, department, salary), products(product_id, product_name, category), sales(sale_id, product_id, quantity, sale_date)`;
+        const prompt = `Based on the following schema: ${schema}. Write a single, valid MS SQL query for the following request. Only return the SQL code, with no explanations or backticks: "${userInput}"`;
+        
+        const generatedSql = await callGemini(prompt);
+        
+        sqlOutput.textContent = generatedSql;
+        outputContainer.classList.remove('hidden');
+        explanationOutput.classList.add('hidden');
+        
+        btnText.classList.remove('hidden');
+        spinner.classList.add('hidden');
+        generateSqlBtn.disabled = false;
+    });
+
+    explainSqlBtn.addEventListener('click', async () => {
+        const sqlQuery = document.getElementById('generated-sql').textContent;
+        if (!sqlQuery.trim()) return;
+        
+        const btnText = document.getElementById('explain-sql-btn-text');
+        const spinner = document.getElementById('explain-sql-spinner');
+        const explanationOutput = document.getElementById('explanation-output');
+
+        btnText.classList.add('hidden');
+        spinner.classList.remove('hidden');
+        explainSqlBtn.disabled = true;
+
+        const prompt = `Explain the following SQL query to a beginner. Break it down step-by-step in simple terms. Use markdown for formatting. Query: \`\`\`sql\n${sqlQuery}\n\`\`\``;
+
+        const explanation = await callGemini(prompt);
+        explanationOutput.innerHTML = explanation.replace(/\n/g, '<br>'); // Simple markdown conversion
+        explanationOutput.classList.remove('hidden');
+
+        btnText.classList.remove('hidden');
+        spinner.classList.add('hidden');
+        explainSqlBtn.disabled = false;
+    });
+
+    document.getElementById('export-pdf-btn').addEventListener('click', () => {
+        const doc = new jsPDF();
+        let y = 15;
+
+        doc.setFontSize(22);
+        doc.text("DataNOW's Exclusive MS SQL Masterclass", 10, y);
+        y += 10;
+
+        const sectionsToExport = ['intro', 'setup', 'fundamentals', 'querying'];
+        sectionsToExport.forEach(id => {
+            const section = document.getElementById(id);
+            const titleElement = section.querySelector('h1, h2');
+            const title = titleElement ? titleElement.textContent : 'Untitled Section';
+            
+            y += 10;
+            if (y > 280) {
+                doc.addPage();
+                y = 15;
+            }
+            doc.setFontSize(18);
+            doc.text(title, 10, y);
+            y += 8;
+            
+            doc.setFontSize(12);
+            const paragraphs = section.querySelectorAll('p');
+            paragraphs.forEach(p => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 15;
+                }
+                const text = doc.splitTextToSize(p.textContent, 180);
+                doc.text(text, 10, y);
+                y += (text.length * 5) + 3;
+            });
+
+            if (id === 'fundamentals') {
+                doc.addPage();
+                y = 15;
+                doc.setFontSize(16);
+                doc.text("Supplementary Topics", 10, y);
+                y += 10;
+
+                doc.setFontSize(14);
+                doc.text("Handling NULLs", 10, y);
+                y+= 6;
+                doc.setFontSize(12);
+                doc.text(doc.splitTextToSize("A NULL value is a field with no value. It is important to handle NULLs correctly in your queries using IS NULL or IS NOT NULL, as they don't equal any value, not even themselves.", 180), 10, y);
+                y+=20;
+
+                doc.setFontSize(14);
+                doc.text("Using ALIASES", 10, y);
+                y+= 6;
+                doc.setFontSize(12);
+                doc.text(doc.splitTextToSize("Aliases (using AS) make queries more readable by giving temporary names to tables and columns. Example: SELECT c.CustomerName AS Name FROM Customers AS c;", 180), 10, y);
+                y+=20;
+            }
+        });
+
+        doc.save('SQL_Masterclass_Lecture.pdf');
+    });
+
+    renderActivity();
+    
+});
+</script>
+
+</body>
+</html>
