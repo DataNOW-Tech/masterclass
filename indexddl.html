@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DataNOW's Exclusive MS SQL Masterclass</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -125,7 +124,6 @@
                         <a href="#fundamentals" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Fundamentals</a>
                         <a href="#defining" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Defining Data</a>
                         <a href="#playground" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Playground</a>
-                        <a href="#ai-playground" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">AI Playground ✨</a>
                         <a href="#lab" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">SSMS Lab</a>
                         <a href="#activity" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Activity</a>
                     </div>
@@ -150,7 +148,6 @@
                 <a href="#fundamentals" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Fundamentals</a>
                 <a href="#defining" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Defining Data</a>
                 <a href="#playground" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Playground</a>
-                <a href="#ai-playground" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">AI Playground ✨</a>
                 <a href="#lab" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">SSMS Lab</a>
                 <a href="#activity" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Activity</a>
             </div>
@@ -160,8 +157,8 @@
     <main>
         <section id="intro" class="py-16 sm:py-20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center fade-in-section">
-                <h1 class="text-4xl sm:text-5xl font-extrabold text-[var(--brand-dark)] tracking-tight">DataNOW's Exclusive SQL Masterclass</h1>
-                <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-700">Welcome! This week's session focuses on Data Definition Language (DDL), the part of SQL that builds and manages the structure of databases. You'll learn how to create the "scaffolding" that holds all the data.</p>
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-[var(--brand-dark)] tracking-tight">DataNOW's Exclusive Masterclass</h1>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-700">Welcome! This session focuses on Data Definition Language (DDL), the part of SQL that builds and manages the structure of databases. You'll learn how to create the "scaffolding" that holds all the data.</p>
                 <div class="mt-8">
                     <button id="export-pdf-btn" class="bg-[var(--brand-red)] text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition">
                         📄 Export Lecture to PDF
@@ -207,16 +204,20 @@
                     <div class="mb-4 border-b border-gray-300">
                         <ul class="flex flex-wrap -mb-px" id="fundamentals-tabs">
                             <li class="mr-2"><button data-tab="tab-what-is-ddl" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg font-semibold">What is DDL?</button></li>
-                            <li class="mr-2"><button data-tab="tab-create" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">The CREATE Statement</button></li>
-                            <li class="mr-2"><button data-tab="tab-alter" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">The ALTER Statement</button></li>
-                            <li class="mr-2"><button data-tab="tab-drop" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">The DROP Statement</button></li>
+                            <li class="mr-2"><button data-tab="tab-create-types" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">CREATE & Data Types</button></li>
+                            <li class="mr-2"><button data-tab="tab-constraints" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">Constraints</button></li>
+                            <li class="mr-2"><button data-tab="tab-indexes" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">Indexes</button></li>
+                            <li class="mr-2"><button data-tab="tab-alter" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">ALTER TABLE</button></li>
+                            <li class="mr-2"><button data-tab="tab-drop-truncate" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">DROP vs. TRUNCATE</button></li>
                         </ul>
                     </div>
                     <div id="fundamentals-content" class="bg-brand-white p-6 rounded-lg shadow-lg">
                         <div id="tab-what-is-ddl" class="fundamentals-tab-content space-y-4"></div>
-                        <div id="tab-create" class="fundamentals-tab-content hidden space-y-6"></div>
+                        <div id="tab-create-types" class="fundamentals-tab-content hidden space-y-6"></div>
+                        <div id="tab-constraints" class="fundamentals-tab-content hidden space-y-4"></div>
+                        <div id="tab-indexes" class="fundamentals-tab-content hidden space-y-4"></div>
                         <div id="tab-alter" class="fundamentals-tab-content hidden space-y-4"></div>
-                        <div id="tab-drop" class="fundamentals-tab-content hidden space-y-4"></div>
+                        <div id="tab-drop-truncate" class="fundamentals-tab-content hidden space-y-4"></div>
                     </div>
                 </div>
             </div>
@@ -256,44 +257,6 @@
             </div>
         </section>
         
-        <section id="ai-playground" class="py-16 sm:py-20">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
-                <div class="text-center">
-                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">AI Playground ✨</h2>
-                    <p class="mt-4 text-lg text-gray-700">Translate plain English into SQL. Type a request like "create a table for products with id, name, and price" and let the AI generate the query for you.</p>
-                </div>
-                <div class="mt-12 bg-brand-white p-6 rounded-lg shadow-lg">
-                    <h3 class="font-semibold mb-2">Available Tables:</h3>
-                    <div class="grid md:grid-cols-3 gap-4 mb-4 text-xs">
-                        <div><strong>employees</strong> (id, name, department, salary)</div>
-                        <div><strong>products</strong> (product_id, product_name, category)</div>
-                        <div><strong>sales</strong> (sale_id, product_id, quantity, sale_date)</div>
-                    </div>
-                    <div>
-                        <label for="ai-playground-input" class="font-semibold block mb-2">Your Request:</label>
-                        <textarea id="ai-playground-input" rows="3" class="w-full p-2 rounded-md" placeholder="e.g., show me the names of all products in the furniture category"></textarea>
-                    </div>
-                    <div class="mt-4">
-                        <button id="generate-sql-btn" class="w-full flex items-center justify-center text-white font-semibold px-4 py-2 rounded-md disabled:bg-gray-400">
-                           <span id="generate-sql-btn-text">Generate SQL ✨</span>
-                           <div id="generate-sql-spinner" class="spinner hidden"></div>
-                        </button>
-                    </div>
-                     <div id="ai-output-container" class="mt-6 hidden">
-                        <h3 class="font-semibold mb-2">Generated SQL:</h3>
-                        <div id="generated-sql" class="code-block"></div>
-                        <div class="mt-4">
-                             <button id="explain-sql-btn" class="w-full flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-md disabled:bg-gray-400">
-                               <span id="explain-sql-btn-text">Explain this Query ✨</span>
-                               <div id="explain-sql-spinner" class="spinner hidden"></div>
-                            </button>
-                        </div>
-                        <div id="explanation-output" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg hidden"></div>
-                     </div>
-                </div>
-            </div>
-        </section>
-
         <section id="lab" class="py-16 sm:py-20 bg-gray-100">
              <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
                 <div class="text-center">
@@ -407,8 +370,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { threshold: 0.1 });
     document.querySelectorAll('.fade-in-section').forEach(section => animationObserver.observe(section));
 
-    const sections = document.querySelectorAll('main section');
-    const navLinks = document.querySelectorAll('.nav-link');
     const mobileMenuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
     const hamburgerIcon = document.getElementById('hamburger-icon');
@@ -430,14 +391,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.addEventListener('scroll', () => {
         let current = '';
-        sections.forEach(section => {
+        document.querySelectorAll('main section').forEach(section => {
             const sectionTop = section.offsetTop;
             if (pageYOffset >= sectionTop - 150) {
                 current = section.getAttribute('id');
             }
         });
 
-        navLinks.forEach(link => {
+        document.querySelectorAll('.nav-link').forEach(link => {
             link.classList.remove('active-nav');
             if (link.getAttribute('href') === `#${current}`) {
                 link.classList.add('active-nav');
@@ -450,9 +411,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const fundamentalsTabContents = document.getElementById('fundamentals-content').querySelectorAll('.fundamentals-tab-content');
     
     document.querySelector('#tab-what-is-ddl').innerHTML = `<h3 class="text-xl font-semibold">What is DDL?</h3><p>Data Definition Language (DDL) is the part of SQL used to create and modify the structure of your database objects. If your database is a house, DDL is the blueprint and the construction crew. It doesn't deal with the furniture (data), but with the rooms themselves (tables).</p><div class="text-center mt-4"><span class="text-6xl">🏗️</span></div>`;
-    document.querySelector('#tab-create').innerHTML = `<h3 class="text-xl font-semibold">The CREATE Statement</h3><p>The <code>CREATE</code> command is used to build new database objects. The most common use is <code>CREATE TABLE</code>, which builds a new table. When you create a table, you must define each column and specify what type of data it will hold.</p><div class="code-block mt-4">CREATE TABLE Students (\n    StudentID INT PRIMARY KEY,\n    FirstName VARCHAR(50),\n    EnrollmentDate DATE\n);</div>`;
+    document.querySelector('#tab-create-types').innerHTML = `<h3 class="text-xl font-semibold">CREATE TABLE & Data Types</h3><p>The <code>CREATE</code> command builds tables. You must define each column's name and data type, like <code>INT</code> for numbers or <code>VARCHAR(100)</code> for text up to 100 characters.</p><div class="code-block mt-4">CREATE TABLE Products (\n    ProductID INT,\n    ProductName VARCHAR(100),\n    Price DECIMAL(10, 2)\n);</div>`;
+    document.querySelector('#tab-constraints').innerHTML = `<h3 class="text-xl font-semibold">Constraints</h3><p>Constraints are rules to ensure data integrity.</p><div class="space-y-2 mt-4"><p><strong>PRIMARY KEY:</strong> Uniquely identifies each record in a table.</p><p><strong>FOREIGN KEY:</strong> Links a row in one table to a row in another.</p><p><strong>NOT NULL:</strong> Ensures a column cannot have an empty value.</p><p><strong>UNIQUE:</strong> Ensures all values in a column are different.</p><p><strong>DEFAULT:</strong> Sets a default value for a column if no value is specified.</p></div>`;
+    document.querySelector('#tab-indexes').innerHTML = `<h3 class="text-xl font-semibold">Indexes</h3><p>Indexes are used to retrieve data from the database more quickly. Think of them as an index in the back of a book.</p><div class="grid md:grid-cols-2 gap-4 mt-4"><div class="p-4 bg-gray-50 rounded-lg"><h4 class="font-semibold text-lg">Clustered Index</h4><p>Determines the physical order of data in a table. A table can have only one clustered index.</p></div><div class="p-4 bg-gray-50 rounded-lg"><h4 class="font-semibold text-lg">Non-Clustered Index</h4><p>Has a structure separate from the data rows. A table can have multiple non-clustered indexes.</p></div></div>`;
     document.querySelector('#tab-alter').innerHTML = `<h3 class="text-xl font-semibold">The ALTER Statement</h3><p>The <code>ALTER</code> command is used to modify existing database objects. For tables, this means you can add, delete, or change the data type of columns.</p><div class="code-block mt-4">-- Adds a new 'Major' column to the Students table\nALTER TABLE Students\nADD Major VARCHAR(100);</div>`;
-    document.querySelector('#tab-drop').innerHTML = `<h3 class="text-xl font-semibold">The DROP Statement</h3><p>The <code>DROP</code> command permanently deletes database objects. Using <code>DROP TABLE</code> will remove the table's structure and all the data within it. This action is irreversible, so use it with caution!</p><div class="code-block mt-4">DROP TABLE Students;</div>`;
+    document.querySelector('#tab-drop-truncate').innerHTML = `<h3 class="text-xl font-semibold">DROP vs. TRUNCATE</h3><p>Both commands delete table data, but in different ways.</p><div class="grid md:grid-cols-2 gap-4 mt-4"><div class="p-4 bg-red-50 rounded-lg"><h4 class="font-semibold text-lg">DROP TABLE</h4><p>Deletes the entire table structure and all its data. It's permanent and cannot be undone.</p></div><div class="p-4 bg-yellow-50 rounded-lg"><h4 class="font-semibold text-lg">TRUNCATE TABLE</h4><p>Deletes all rows from a table, but the table structure remains. It's faster than deleting rows one by one.</p></div></div>`;
 
     fundamentalsTabs.addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
@@ -699,146 +662,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     activitySection.addEventListener('input', handlePasswordInput);
     
-    // AI Playground Logic
-    const generateSqlBtn = document.getElementById('generate-sql-btn');
-    const explainSqlBtn = document.getElementById('explain-sql-btn');
-
-    async function callGemini(prompt) {
-        const apiKey = ""; 
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-        const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            const result = await response.json();
-             if (result.candidates && result.candidates.length > 0 &&
-              result.candidates[0].content && result.candidates[0].content.parts &&
-              result.candidates[0].content.parts.length > 0) {
-                return result.candidates[0].content.parts[0].text;
-            }
-        } catch (error) {
-            console.error("Gemini API call failed:", error);
-            return "Error: Could not connect to the AI service.";
-        }
-        return "Sorry, I couldn't generate a response.";
-    }
-
-    generateSqlBtn.addEventListener('click', async () => {
-        const userInput = document.getElementById('ai-playground-input').value;
-        if (!userInput.trim()) return;
-
-        const btnText = document.getElementById('generate-sql-btn-text');
-        const spinner = document.getElementById('generate-sql-spinner');
-        const outputContainer = document.getElementById('ai-output-container');
-        const sqlOutput = document.getElementById('generated-sql');
-        const explanationOutput = document.getElementById('explanation-output');
-
-        btnText.classList.add('hidden');
-        spinner.classList.remove('hidden');
-        generateSqlBtn.disabled = true;
-
-        const schema = `employees(id, name, department, salary), products(product_id, product_name, category), sales(sale_id, product_id, quantity, sale_date)`;
-        const prompt = `Based on the following schema: ${schema}. Write a single, valid MS SQL query for the following request. Only return the SQL code, with no explanations or backticks: "${userInput}"`;
-        
-        const generatedSql = await callGemini(prompt);
-        
-        sqlOutput.textContent = generatedSql;
-        outputContainer.classList.remove('hidden');
-        explanationOutput.classList.add('hidden');
-        
-        btnText.classList.remove('hidden');
-        spinner.classList.add('hidden');
-        generateSqlBtn.disabled = false;
-    });
-
-    explainSqlBtn.addEventListener('click', async () => {
-        const sqlQuery = document.getElementById('generated-sql').textContent;
-        if (!sqlQuery.trim()) return;
-        
-        const btnText = document.getElementById('explain-sql-btn-text');
-        const spinner = document.getElementById('explain-sql-spinner');
-        const explanationOutput = document.getElementById('explanation-output');
-
-        btnText.classList.add('hidden');
-        spinner.classList.remove('hidden');
-        explainSqlBtn.disabled = true;
-
-        const prompt = `Explain the following SQL query to a beginner. Break it down step-by-step in simple terms. Use markdown for formatting. Query: \`\`\`sql\n${sqlQuery}\n\`\`\``;
-
-        const explanation = await callGemini(prompt);
-        explanationOutput.innerHTML = explanation.replace(/\n/g, '<br>'); // Simple markdown conversion
-        explanationOutput.classList.remove('hidden');
-
-        btnText.classList.remove('hidden');
-        spinner.classList.add('hidden');
-        explainSqlBtn.disabled = false;
-    });
-
-    document.getElementById('export-pdf-btn').addEventListener('click', () => {
-        const doc = new jsPDF();
-        let y = 15;
-
-        doc.setFontSize(22);
-        doc.text("DataNOW's Exclusive MS SQL Masterclass", 10, y);
-        y += 10;
-
-        const sectionsToExport = ['intro', 'setup', 'fundamentals', 'defining'];
-        sectionsToExport.forEach(id => {
-            const section = document.getElementById(id);
-            const titleElement = section.querySelector('h1, h2');
-            const title = titleElement ? titleElement.textContent : 'Untitled Section';
-            
-            y += 10;
-            if (y > 280) {
-                doc.addPage();
-                y = 15;
-            }
-            doc.setFontSize(18);
-            doc.text(title, 10, y);
-            y += 8;
-            
-            doc.setFontSize(12);
-            const paragraphs = section.querySelectorAll('p');
-            paragraphs.forEach(p => {
-                if (y > 280) {
-                    doc.addPage();
-                    y = 15;
-                }
-                const text = doc.splitTextToSize(p.textContent, 180);
-                doc.text(text, 10, y);
-                y += (text.length * 5) + 3;
-            });
-
-            if (id === 'fundamentals') {
-                doc.addPage();
-                y = 15;
-                doc.setFontSize(16);
-                doc.text("Supplementary Topics", 10, y);
-                y += 10;
-
-                doc.setFontSize(14);
-                doc.text("Handling NULLs", 10, y);
-                y+= 6;
-                doc.setFontSize(12);
-                doc.text(doc.splitTextToSize("A NULL value is a field with no value. It is important to handle NULLs correctly in your queries using IS NULL or IS NOT NULL, as they don't equal any value, not even themselves.", 180), 10, y);
-                y+=20;
-
-                doc.setFontSize(14);
-                doc.text("Using ALIASES", 10, y);
-                y+= 6;
-                doc.setFontSize(12);
-                doc.text(doc.splitTextToSize("Aliases (using AS) make queries more readable by giving temporary names to tables and columns. Example: SELECT c.CustomerName AS Name FROM Customers AS c;", 180), 10, y);
-                y+=20;
-            }
-        });
-
-        doc.save('SQL_DDL_Masterclass_Lecture.pdf');
-    });
-
     renderActivity();
     
 });
@@ -846,4 +669,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
