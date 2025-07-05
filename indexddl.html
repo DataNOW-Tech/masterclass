@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataNOW's Exclusive MS SQL DDL Masterclass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: DataNOW Inc. Custom Brand Colors -->
+    <!-- Application Structure Plan: The application has been refocused to teach DDL (Data Definition Language). The structure remains a non-linear learning hub but with all content—Fundamentals, Defining Data, Playground, Labs, and Activities—rewritten for DDL concepts like CREATE, ALTER, and DROP. The interactive playground now simulates schema changes, providing a unique, safe environment for beginners to practice DDL. -->
+    <!-- Visualization & Content Choices: 
+        - DDL Commands -> Goal: Inform/Teach Syntax -> Viz: 'Defining Data' Explorer UI (HTML/JS) -> Interaction: Click buttons to display corresponding DDL command info -> Justification: Allows focused, self-directed learning of individual commands.
+        - DDL Playground -> Goal: Apply DDL knowledge -> Viz: Interactive code editor and visual schema output -> Interaction: User writes a CREATE/ALTER statement, clicks run, and sees a visual representation of the resulting table schema. -> Justification: Provides a safe, simulated environment to practice schema manipulation without a live database.
+        - Lab/Activity Tasks -> Goal: Test Knowledge -> Viz: Accordion/Toggle UI with password protection -> Interaction: Enter password to reveal DDL solutions -> Justification: Encourages active problem-solving before viewing the answer.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        :root {
+            --brand-blue: #145da1;
+            --brand-red: #ee272a;
+            --brand-yellow: #fed966;
+            --brand-white: #ffffff;
+            --brand-dark: #2d3748;
+            --brand-light-gray: #f7fafc;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--brand-light-gray);
+            color: var(--brand-dark);
+        }
+        .active-nav {
+            color: var(--brand-yellow); 
+            font-weight: 600;
+            position: relative;
+        }
+        .active-nav::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--brand-yellow);
+        }
+        .code-block {
+            background-color: #263238;
+            color: #eceff1;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .query-playground textarea, #ai-playground-input {
+            background-color: #263238;
+            color: #82aaff;
+            font-family: 'Courier New', Courier, monospace;
+            border: 1px solid #4a5568;
+        }
+        .query-playground button#run-query, #generate-sql-btn {
+            background-color: var(--brand-blue);
+            transition: background-color 0.3s;
+        }
+         .query-playground button#run-query:hover, #generate-sql-btn:hover {
+            background-color: #0f4a81;
+        }
+        .icon-symbol {
+            font-size: 1.5rem;
+            line-height: 1;
+            color: var(--brand-blue);
+        }
+        .locked-answer {
+            background-color: #e2e8f0;
+            border: 2px dashed #94a3b8;
+            color: transparent;
+            user-select: none;
+            filter: blur(4px);
+            transition: all 0.3s ease-in-out;
+        }
+        .unlocked-answer {
+            background-color: #f0fdf4;
+            border: 2px solid #22c55e;
+            filter: blur(0);
+            color: inherit;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: var(--brand-yellow);
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav id="navbar" class="bg-[var(--brand-blue)] sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center flex-shrink-0">
+                    <span class="text-2xl font-bold text-white">DataNOW, Inc.</span>
+                </div>
+                 <div class="hidden md:block">
+                    <div id="desktop-menu" class="ml-10 flex items-baseline space-x-4">
+                        <a href="#intro" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Introduction</a>
+                        <a href="#setup" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Setup</a>
+                        <a href="#fundamentals" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Fundamentals</a>
+                        <a href="#defining" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Defining Data</a>
+                        <a href="#playground" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Playground</a>
+                        <a href="#ai-playground" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">AI Playground ✨</a>
+                        <a href="#lab" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">SSMS Lab</a>
+                        <a href="#activity" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Activity</a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button id="mobile-menu-button" type="button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <span class="sr-only">Open main menu</span>
+                        <svg id="hamburger-icon" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg id="close-icon" class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#intro" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Introduction</a>
+                <a href="#setup" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Setup</a>
+                <a href="#fundamentals" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Fundamentals</a>
+                <a href="#defining" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Defining Data</a>
+                <a href="#playground" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Playground</a>
+                <a href="#ai-playground" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">AI Playground ✨</a>
+                <a href="#lab" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">SSMS Lab</a>
+                <a href="#activity" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Activity</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="intro" class="py-16 sm:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center fade-in-section">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-[var(--brand-dark)] tracking-tight">DataNOW's Exclusive DDL Masterclass</h1>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-700">Welcome! This masterclass focuses on Data Definition Language (DDL), the part of SQL that builds and manages the structure of databases. You'll learn how to create the "scaffolding" that holds all the data.</p>
+                <div class="mt-8">
+                    <button id="export-pdf-btn" class="bg-[var(--brand-red)] text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition">
+                        📄 Export Lecture to PDF
+                    </button>
+                </div>
+                 <div class="mt-12 bg-brand-white p-6 rounded-lg shadow-lg">
+                    <h3 class="text-xl font-semibold text-[var(--brand-dark)]">The Blueprint of Data</h3>
+                    <p class="mt-2 text-gray-600">DDL is like the architect's blueprint for a building. Before you can put things inside (the data), you must first design the rooms (tables), define what goes in each room (columns and data types), and establish how they connect (keys).</p>
+                    <div class="flex justify-center items-center space-x-8 mt-6 text-gray-600">
+                         <div class="text-center">
+                            <span class="text-5xl">🏗️</span>
+                            <p class="text-sm font-medium mt-2">CREATE Tables</p>
+                        </div>
+                        <div class="text-center">
+                            <span class="text-5xl">✏️</span>
+                            <p class="text-sm font-medium mt-2">ALTER Structures</p>
+                        </div>
+                         <div class="text-center">
+                            <span class="text-5xl">❌</span>
+                            <p class="text-sm font-medium mt-2">DROP Objects</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="setup" class="py-16 sm:py-20 bg-gray-100">
+             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Your Development Environment</h2>
+                    <p class="mt-4 text-lg text-gray-700">The tools for defining data are the same as for querying it. This section guides you through installing SQL Server and SSMS.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="fundamentals" class="py-16 sm:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">DDL Fundamentals</h2>
+                    <p class="mt-4 text-lg max-w-3xl mx-auto text-gray-700">To build a database, you must first understand its core components and the commands that create them.</p>
+                </div>
+                <div class="mt-12 max-w-5xl mx-auto">
+                    <div class="mb-4 border-b border-gray-300">
+                        <ul class="flex flex-wrap -mb-px" id="fundamentals-tabs">
+                            <li class="mr-2"><button data-tab="tab-what-is-ddl" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg font-semibold">What is DDL?</button></li>
+                            <li class="mr-2"><button data-tab="tab-create" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">The CREATE Statement</button></li>
+                            <li class="mr-2"><button data-tab="tab-alter" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">The ALTER Statement</button></li>
+                            <li class="mr-2"><button data-tab="tab-drop" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">The DROP Statement</button></li>
+                        </ul>
+                    </div>
+                    <div id="fundamentals-content" class="bg-brand-white p-6 rounded-lg shadow-lg">
+                        <div id="tab-what-is-ddl" class="fundamentals-tab-content space-y-4"></div>
+                        <div id="tab-create" class="fundamentals-tab-content hidden space-y-6"></div>
+                        <div id="tab-alter" class="fundamentals-tab-content hidden space-y-4"></div>
+                        <div id="tab-drop" class="fundamentals-tab-content hidden space-y-4"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="defining" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Defining Data with DDL</h2>
+                    <p class="mt-4 text-lg max-w-3xl mx-auto text-gray-700">This section is a code explorer for the most fundamental DDL commands.</p>
+                </div>
+                <div class="mt-12 md:flex md:space-x-8">
+                    <div class="md:w-1/4 mb-8 md:mb-0">
+                        <div class="space-y-2">
+                            <button data-command="create" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">CREATE TABLE</button>
+                            <button data-command="alter" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">ALTER TABLE</button>
+                            <button data-command="drop" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">DROP TABLE</button>
+                            <button data-command="truncate" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">TRUNCATE TABLE</button>
+                        </div>
+                    </div>
+                    <div class="md:w-3/4 bg-brand-white p-6 rounded-lg shadow-lg">
+                        <div id="command-display" class="space-y-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="playground" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section query-playground">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">DDL Playground</h2>
+                    <p class="mt-4 text-lg text-gray-700">Time to build! Write DDL statements in the editor below. The application will simulate the result by showing you the new table schema.</p>
+                </div>
+                <div id="playground-container" class="mt-12 bg-brand-white p-6 rounded-lg shadow-lg">
+                </div>
+            </div>
+        </section>
+        
+        <section id="ai-playground" class="py-16 sm:py-20">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">AI Playground ✨</h2>
+                    <p class="mt-4 text-lg text-gray-700">Translate plain English into SQL. Type a request like "create a table for products with id, name, and price" and let the AI generate the query for you.</p>
+                </div>
+                <div class="mt-12 bg-brand-white p-6 rounded-lg shadow-lg">
+                    <h3 class="font-semibold mb-2">Available Tables:</h3>
+                    <div class="grid md:grid-cols-3 gap-4 mb-4 text-xs">
+                        <div><strong>employees</strong> (id, name, department, salary)</div>
+                        <div><strong>products</strong> (product_id, product_name, category)</div>
+                        <div><strong>sales</strong> (sale_id, product_id, quantity, sale_date)</div>
+                    </div>
+                    <div>
+                        <label for="ai-playground-input" class="font-semibold block mb-2">Your Request:</label>
+                        <textarea id="ai-playground-input" rows="3" class="w-full p-2 rounded-md" placeholder="e.g., show me the names of all products in the furniture category"></textarea>
+                    </div>
+                    <div class="mt-4">
+                        <button id="generate-sql-btn" class="w-full flex items-center justify-center text-white font-semibold px-4 py-2 rounded-md disabled:bg-gray-400">
+                           <span id="generate-sql-btn-text">Generate SQL ✨</span>
+                           <div id="generate-sql-spinner" class="spinner hidden"></div>
+                        </button>
+                    </div>
+                     <div id="ai-output-container" class="mt-6 hidden">
+                        <h3 class="font-semibold mb-2">Generated SQL:</h3>
+                        <div id="generated-sql" class="code-block"></div>
+                        <div class="mt-4">
+                             <button id="explain-sql-btn" class="w-full flex items-center justify-center bg-gray-600 hover:bg-gray-700 text-white font-semibold px-4 py-2 rounded-md disabled:bg-gray-400">
+                               <span id="explain-sql-btn-text">Explain this Query ✨</span>
+                               <div id="explain-sql-spinner" class="spinner hidden"></div>
+                            </button>
+                        </div>
+                        <div id="explanation-output" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg hidden"></div>
+                     </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="lab" class="py-16 sm:py-20 bg-gray-100">
+             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Hands-On Lab (SSMS)</h2>
+                    <p class="mt-4 text-lg text-gray-700">For a full database experience, download the script below, run it in SSMS, and then tackle the challenges.</p>
+                </div>
+                <div class="mt-12 space-y-8">
+                    <div id="lab-challenges" class="space-y-8"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="activity" class="py-16 sm:py-20">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+               <div class="text-center">
+                   <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Activity for Next Week</h2>
+                   <p class="mt-4 text-lg text-gray-700">Apply what you've learned! Use the `SampleDB` database from the SSMS Lab to solve these challenges. Enter the instructor password to unlock the answers.</p>
+               </div>
+               <div id="activity-container" class="mt-12">
+               </div>
+           </div>
+       </section>
+    </main>
+    
+    <footer class="bg-[var(--brand-dark)]">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-300">
+            <p>DataNOW's Exclusive MS SQL Masterclass | A Learning Resource</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const { jsPDF } = window.jspdf;
+
+    const brandColors = {
+        blue: '#145da1',
+        red: '#ee272a',
+        yellow: '#fed966',
+    };
+    
+    const ddlCommandsData = {
+        create: { title: 'CREATE TABLE', description: 'Used to create a new table in your database. You must define each column and its data type.', code: `CREATE TABLE Employees (\n    EmployeeID INT PRIMARY KEY,\n    FirstName VARCHAR(50),\n    LastName VARCHAR(50),\n    HireDate DATE\n);` },
+        alter: { title: 'ALTER TABLE', description: 'Modifies an existing table. You can add, delete, or modify columns.', code: `-- Add a new column\nALTER TABLE Employees\nADD Email VARCHAR(100);\n\n-- Modify a column's data type\nALTER TABLE Employees\nALTER COLUMN FirstName VARCHAR(100);` },
+        drop: { title: 'DROP TABLE', description: 'Permanently deletes an existing table, including its structure and all of its data. This action cannot be undone!', code: `DROP TABLE Employees;` },
+        truncate: { title: 'TRUNCATE TABLE', description: 'Deletes all data from inside a table, but the table structure remains. It is much faster than DELETE for removing all rows.', code: `TRUNCATE TABLE Employees;` }
+    };
+    
+    const labChallengesData = [
+        {
+            title: 'Lab Task 1: Creating Tables',
+            challenges: [
+                { prompt: "1. Create a new table called `Departments` with two columns: `DepartmentID` (INT, Primary Key) and `DepartmentName` (VARCHAR(100)).", solution: "CREATE TABLE Departments (\n    DepartmentID INT PRIMARY KEY,\n    DepartmentName VARCHAR(100)\n);" },
+            ]
+        },
+        {
+            title: 'Lab Task 2: Altering Tables',
+            challenges: [
+                { prompt: "1. Add a `PhoneNumber` column (VARCHAR(20)) to the `Customers` table.", solution: "ALTER TABLE Customers\nADD PhoneNumber VARCHAR(20);" },
+                { prompt: "2. Change the `Price` column in the `Products` table to be `DECIMAL(12, 2)`.", solution: "ALTER TABLE Products\nALTER COLUMN Price DECIMAL(12, 2);" },
+            ]
+        },
+        {
+            title: 'Lab Task 3: Dropping Objects',
+            challenges: [
+                { prompt: "1. Let's assume you created a temporary table called `TempCustomers`. Write the query to permanently delete it.", hint: "Use the DROP TABLE command.", solution: "DROP TABLE TempCustomers;" }
+            ]
+        }
+    ];
+
+    const playgroundData = {
+        challenges: [
+            {
+                question: "Your company needs a way to store information about employees. Create a table named `Employees` with the following columns: `EmployeeID` as an integer, `FullName` as text (up to 100 characters), and `StartDate` as a date.",
+                validate: (query) => /CREATE\s+TABLE\s+Employees\s*\(.*EmployeeID\s+INT.*FullName\s+VARCHAR\(100\).*StartDate\s+DATE.*\)/is.test(query),
+                getSchema: () => ({ name: 'Employees', columns: ['EmployeeID (INT)', 'FullName (VARCHAR(100))', 'StartDate (DATE)'] })
+            },
+            {
+                question: "Management has decided they also need to store the department for each employee. Add a new column called `Department` (text, up to 50 characters) to the `Employees` table.",
+                validate: (query) => /ALTER\s+TABLE\s+Employees\s+ADD\s+Department\s+VARCHAR\(50\)/i.test(query.trim()),
+                getSchema: () => ({ name: 'Employees', columns: ['EmployeeID (INT)', 'FullName (VARCHAR(100))', 'StartDate (DATE)', 'Department (VARCHAR(50))'] })
+            },
+            {
+                question: "The `Employees` table is being replaced by a new system. Write the command to permanently delete the `Employees` table.",
+                validate: (query) => /DROP\s+TABLE\s+Employees/i.test(query.trim()),
+                getSchema: () => ({ name: 'Employees', dropped: true })
+            }
+        ]
+    };
+    let currentPlaygroundChallenge = 0;
+
+    const activityData = [
+        { question: "Create a table named `Projects` with `ProjectID` (INT, Primary Key) and `ProjectName` (VARCHAR(255)).", answer: `CREATE TABLE Projects (\n    ProjectID INT PRIMARY KEY,\n    ProjectName VARCHAR(255)\n);` },
+        { question: "Add a `Deadline` column of type `DATE` to the `Projects` table.", answer: `ALTER TABLE Projects\nADD Deadline DATE;` },
+        { question: "Create a `Tasks` table with `TaskID` (INT, PK), `ProjectID` (INT), and `TaskDescription` (VARCHAR(500)).", answer: `CREATE TABLE Tasks (\n    TaskID INT PRIMARY KEY,\n    ProjectID INT,\n    TaskDescription VARCHAR(500)\n);` },
+        { question: "Add a Foreign Key constraint to the `Tasks` table that links `ProjectID` to the `Projects` table.", answer: `ALTER TABLE Tasks\nADD CONSTRAINT FK_Tasks_Projects\nFOREIGN KEY (ProjectID) REFERENCES Projects(ProjectID);` },
+        { question: "Change the `ProjectName` column in the `Projects` table to allow up to 300 characters.", answer: `ALTER TABLE Projects\nALTER COLUMN ProjectName VARCHAR(300);` },
+        { question: "Add a `Status` column to the `Tasks` table (VARCHAR(20)).", answer: `ALTER TABLE Tasks\nADD Status VARCHAR(20);` },
+        { question: "Create an `Invoices` table with `InvoiceID` (INT, PK), `CustomerID` (INT), and `Amount` (DECIMAL(10,2)).", answer: `CREATE TABLE Invoices (\n    InvoiceID INT PRIMARY KEY,\n    CustomerID INT,\n    Amount DECIMAL(10,2)\n);` },
+        { question: "Remove all data from the `Orders` table without deleting the table itself.", answer: `TRUNCATE TABLE Orders;` },
+        { question: "Add a `Notes` column of type `TEXT` to the `Customers` table.", answer: `ALTER TABLE Customers\nADD Notes TEXT;` },
+        { question: "Delete the `Invoices` table completely.", answer: `DROP TABLE Invoices;` },
+    ];
+    let currentActivityIndex = 0;
+    const labPassword = "DDL_Lab_Access";
+    const activityPassword = "SchemaMaster25";
+
+    const animationObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in-section').forEach(section => animationObserver.observe(section));
+
+    const sections = document.querySelectorAll('main section');
+    const navLinks = document.querySelectorAll('.nav-link');
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+    const closeIcon = document.getElementById('close-icon');
+
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        hamburgerIcon.classList.toggle('hidden');
+        closeIcon.classList.toggle('hidden');
+    });
+
+    document.querySelectorAll('.nav-link-mobile').forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            hamburgerIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+        });
+    });
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 150) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        navLinks.forEach(link => {
+            link.classList.remove('active-nav');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active-nav');
+            }
+        });
+    });
+
+    const fundamentalsTabs = document.getElementById('fundamentals-tabs');
+    const fundamentalsTabButtons = fundamentalsTabs.querySelectorAll('.fundamentals-tab-button');
+    const fundamentalsTabContents = document.getElementById('fundamentals-content').querySelectorAll('.fundamentals-tab-content');
+    
+    document.querySelector('#tab-what-is-ddl').innerHTML = `<h3 class="text-xl font-semibold">What is DDL?</h3><p>Data Definition Language (DDL) is the part of SQL used to create and modify the structure of your database objects. If your database is a house, DDL is the blueprint and the construction crew. It doesn't deal with the furniture (data), but with the rooms themselves (tables).</p><div class="text-center mt-4"><span class="text-6xl">🏗️</span></div>`;
+    document.querySelector('#tab-create').innerHTML = `<h3 class="text-xl font-semibold">The CREATE Statement</h3><p>The <code>CREATE</code> command is used to build new database objects. The most common use is <code>CREATE TABLE</code>, which builds a new table. When you create a table, you must define each column and specify what type of data it will hold.</p><div class="code-block mt-4">CREATE TABLE Students (\n    StudentID INT PRIMARY KEY,\n    FirstName VARCHAR(50),\n    EnrollmentDate DATE\n);</div>`;
+    document.querySelector('#tab-alter').innerHTML = `<h3 class="text-xl font-semibold">The ALTER Statement</h3><p>The <code>ALTER</code> command is used to modify existing database objects. For tables, this means you can add, delete, or change the data type of columns.</p><div class="code-block mt-4">-- Adds a new 'Major' column to the Students table\nALTER TABLE Students\nADD Major VARCHAR(100);</div>`;
+    document.querySelector('#tab-drop').innerHTML = `<h3 class="text-xl font-semibold">The DROP Statement</h3><p>The <code>DROP</code> command permanently deletes database objects. Using <code>DROP TABLE</code> will remove the table's structure and all the data within it. This action is irreversible, so use it with caution!</p><div class="code-block mt-4">DROP TABLE Students;</div>`;
+
+    fundamentalsTabs.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            const tabId = e.target.getAttribute('data-tab');
+            fundamentalsTabButtons.forEach(btn => {
+                btn.classList.remove('border-[var(--brand-blue)]', 'text-[var(--brand-blue)]');
+                btn.classList.add('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+            });
+            e.target.classList.add('border-[var(--brand-blue)]', 'text-[var(--brand-blue)]');
+            e.target.classList.remove('border-transparent');
+            fundamentalsTabContents.forEach(content => content.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+    });
+    fundamentalsTabButtons[0].click();
+    
+    const commandButtonsContainer = document.querySelector('#defining .md\\:w-1\\/4 .space-y-2');
+    const commandDisplay = document.getElementById('command-display');
+    commandButtonsContainer.addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON') {
+            const command = e.target.dataset.command;
+            commandButtonsContainer.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('bg-[var(--brand-blue)]', 'text-white');
+                btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
+            });
+            e.target.classList.add('bg-[var(--brand-blue)]', 'text-white');
+            e.target.classList.remove('bg-gray-200');
+            const data = ddlCommandsData[command];
+            commandDisplay.innerHTML = `<h3 class="text-xl font-semibold">${data.title}</h3><p>${data.description}</p><div class="code-block">${data.code.replace(/</g, "&lt;")}</div>`;
+        }
+    });
+    commandButtonsContainer.querySelector('button').click();
+
+    const labContainer = document.getElementById('lab-challenges');
+    labChallengesData.forEach((taskGroup, groupIndex) => {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'bg-brand-white p-6 rounded-lg shadow-lg';
+        const titleEl = document.createElement('h3');
+        titleEl.className = 'text-xl font-semibold text-[var(--brand-dark)] mb-4';
+        titleEl.textContent = taskGroup.title;
+        groupEl.appendChild(titleEl);
+
+        const questionsContainer = document.createElement('div');
+        questionsContainer.className = 'space-y-3 mb-4';
+        taskGroup.challenges.forEach(challenge => {
+             questionsContainer.innerHTML += `<p class="font-medium">${challenge.prompt}</p>`;
+        });
+        groupEl.appendChild(questionsContainer);
+        
+        const solutionsDiv = document.createElement('div');
+        solutionsDiv.className = 'locked-answer p-4 rounded-lg';
+        solutionsDiv.setAttribute('data-answer-id', `lab-${groupIndex}`);
+        const challengesSolutions = document.createElement('div');
+        challengesSolutions.className = 'space-y-3';
+        taskGroup.challenges.forEach(challenge => {
+            let hintHTML = challenge.hint ? `<p class="text-sm text-gray-500 mb-1 italic"><strong>Hint:</strong> ${challenge.hint}</p>` : '';
+            challengesSolutions.innerHTML += `
+                <div>
+                    <p class="font-medium">${challenge.prompt}</p>
+                    ${hintHTML}
+                    <div class="code-block">${challenge.solution.replace(/</g, "&lt;")}</div>
+                </div>
+            `;
+        });
+        solutionsDiv.appendChild(challengesSolutions);
+        groupEl.appendChild(solutionsDiv);
+
+        const unlockDiv = document.createElement('div');
+        unlockDiv.className = 'mt-4 space-y-2 sm:space-y-0 sm:flex sm:space-x-2';
+        unlockDiv.setAttribute('data-unlock-id', `lab-${groupIndex}`);
+        unlockDiv.innerHTML = `
+            <input type="password" placeholder="Enter password for solutions" class="w-full sm:flex-grow p-2 border rounded-md">
+            <button class="w-full sm:w-auto bg-[var(--brand-blue)] hover:bg-[#0f4a81] text-white font-semibold px-4 py-2 rounded-md">Unlock</button>
+        `;
+        groupEl.appendChild(unlockDiv);
+        const errorEl = document.createElement('p');
+        errorEl.className = 'text-red-600 text-sm mt-1 h-4';
+        errorEl.setAttribute('data-error-id', `lab-${groupIndex}`);
+        groupEl.appendChild(errorEl);
+
+        labContainer.appendChild(groupEl);
+    });
+
+    const playgroundContainer = document.getElementById('playground-container');
+    
+    function renderPlayground() {
+        const challenge = playgroundData.challenges[currentPlaygroundChallenge];
+        playgroundContainer.innerHTML = `
+            <div>
+                <h4 class="font-semibold text-lg mb-2">Challenge #${currentPlaygroundChallenge + 1} of ${playgroundData.challenges.length}</h4>
+                <p class="mb-4 text-gray-700">${challenge.question}</p>
+            </div>
+            <div class="mt-6">
+                <textarea id="query-input" rows="4" class="w-full p-2 rounded-md" placeholder="CREATE TABLE ..."></textarea>
+                <div id="feedback" class="text-sm my-2 h-5 font-medium"></div>
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                    <button id="run-query" class="w-full text-white font-semibold px-4 py-2 rounded-md">Run DDL</button>
+                    <button id="reset-query" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded-md">Reset</button>
+                    <button id="next-challenge" class="hidden lg:block w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md">Next Challenge &rarr;</button>
+                </div>
+                 <button id="next-challenge-mobile" class="hidden lg:hidden mt-2 w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md">Next Challenge &rarr;</button>
+            </div>
+            <div class="mt-6">
+                <h5 class="font-semibold mb-2">Resulting Schema</h5>
+                <div id="result-table">
+                    <p class="text-gray-500 italic">Your table structure will appear here.</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    function renderSchema(schema) {
+        if (schema.dropped) {
+            return `<p class="text-red-500 font-medium">Table '${schema.name}' has been dropped.</p>`;
+        }
+        let tableHTML = `<div class="border rounded-lg p-4"><h4 class="font-bold text-lg mb-2">${schema.name}</h4><ul>`;
+        schema.columns.forEach(col => {
+            tableHTML += `<li class="border-t p-2">${col}</li>`;
+        });
+        tableHTML += '</ul></div>';
+        return tableHTML;
+    }
+
+    function runQuery() {
+        const query = document.getElementById('query-input').value;
+        const feedbackEl = document.getElementById('feedback');
+        const resultTable = document.getElementById('result-table');
+        const nextBtn = document.getElementById('next-challenge');
+        const nextBtnMobile = document.getElementById('next-challenge-mobile');
+        const challenge = playgroundData.challenges[currentPlaygroundChallenge];
+
+        if (challenge.validate(query)) {
+            feedbackEl.textContent = 'Correct! Schema updated.';
+            feedbackEl.className = 'text-sm my-2 h-5 font-medium text-green-600';
+            nextBtn.classList.remove('hidden');
+            nextBtnMobile.classList.remove('hidden');
+            const schema = challenge.getSchema();
+            resultTable.innerHTML = renderSchema(schema);
+        } else {
+            feedbackEl.textContent = 'Not quite right. Check your syntax!';
+            feedbackEl.className = 'text-sm my-2 h-5 font-medium text-red-600';
+            nextBtn.classList.add('hidden');
+            nextBtnMobile.classList.add('hidden');
+            resultTable.innerHTML = '<p class="text-gray-500 italic">Your table structure will appear here.</p>';
+        }
+    }
+
+    function resetQuery() {
+        document.getElementById('query-input').value = '';
+        const feedbackEl = document.getElementById('feedback');
+        feedbackEl.textContent = '';
+        feedbackEl.className = 'text-sm my-2 h-5 font-medium';
+        document.getElementById('result-table').innerHTML = '<p class="text-gray-500 italic">Your table structure will appear here.</p>';
+        document.getElementById('next-challenge').classList.add('hidden');
+        document.getElementById('next-challenge-mobile').classList.add('hidden');
+    }
+    
+    function handlePlaygroundClick(e) {
+        if (e.target.id === 'run-query') runQuery();
+        if (e.target.id === 'reset-query') resetQuery();
+        if (e.target.id === 'next-challenge' || e.target.id === 'next-challenge-mobile') {
+            currentPlaygroundChallenge = (currentPlaygroundChallenge + 1) % playgroundData.challenges.length;
+            renderPlayground();
+        }
+    }
+    
+    renderPlayground();
+    playgroundContainer.addEventListener('click', handlePlaygroundClick);
+
+    const activityContainer = document.getElementById('activity-container');
+    
+    function renderActivity() {
+        const activity = activityData[currentActivityIndex];
+        activityContainer.innerHTML = `
+            <div class="bg-brand-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="font-semibold text-lg text-gray-800">${currentActivityIndex + 1}. ${activity.question}</h4>
+                    <span class="text-sm font-medium text-gray-500">${currentActivityIndex + 1} / ${activityData.length}</span>
+                </div>
+                <div class="mt-4 p-4 rounded-lg locked-answer" data-answer-id="${currentActivityIndex}">
+                    <div class="code-block">${activity.answer.replace(/</g, "&lt;")}</div>
+                </div>
+                <div class="mt-4 space-y-2 sm:space-y-0 sm:flex sm:space-x-2" data-unlock-id="${currentActivityIndex}">
+                    <input type="password" placeholder="Enter password to unlock" class="w-full sm:flex-grow p-2 border rounded-md">
+                    <button class="w-full sm:w-auto bg-[var(--brand-blue)] hover:bg-[#0f4a81] text-white font-semibold px-4 py-2 rounded-md">Unlock</button>
+                </div>
+                <p class="text-red-600 text-sm mt-1 h-4" data-error-id="${currentActivityIndex}"></p>
+            </div>
+            <div class="flex justify-between mt-4">
+                <button id="prev-activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">&larr; Previous</button>
+                <button id="next-activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">Next &rarr;</button>
+            </div>
+        `;
+        document.getElementById('prev-activity').disabled = currentActivityIndex === 0;
+        document.getElementById('next-activity').disabled = currentActivityIndex === activityData.length - 1;
+    }
+
+    function handlePasswordUnlock(e, password) {
+        const wrapper = e.target.closest('[data-unlock-id]');
+        if (!wrapper || !e.target.matches('button')) return;
+        
+        const id = wrapper.dataset.unlockId;
+        const input = wrapper.querySelector('input');
+        const answerEl = document.querySelector(`[data-answer-id="${id}"]`);
+        const errorEl = document.querySelector(`[data-error-id="${id}"]`);
+
+        if (input.value === password) {
+            answerEl.classList.remove('locked-answer');
+            answerEl.classList.add('unlocked-answer');
+            errorEl.textContent = '';
+        } else {
+            errorEl.textContent = 'Wrong password.';
+            input.value = '';
+        }
+    }
+
+    function handlePasswordInput(e) {
+        if(e.target.tagName !== 'INPUT' || e.target.type !== 'password') return;
+        
+        const wrapper = e.target.closest('[data-unlock-id]');
+        const id = wrapper.dataset.unlockId;
+        const answerEl = document.querySelector(`[data-answer-id="${id}"]`);
+
+        if(e.target.value === '') {
+           answerEl.classList.add('locked-answer');
+           answerEl.classList.remove('unlocked-answer');
+        }
+    }
+
+    document.getElementById('lab-challenges').addEventListener('click', e => handlePasswordUnlock(e, labPassword));
+    document.getElementById('lab-challenges').addEventListener('input', handlePasswordInput);
+    
+    const activitySection = document.getElementById('activity-container');
+    activitySection.addEventListener('click', e => {
+        handlePasswordUnlock(e, activityPassword);
+        if (e.target.id === 'next-activity' && currentActivityIndex < activityData.length - 1) {
+            currentActivityIndex++;
+            renderActivity();
+        }
+        if (e.target.id === 'prev-activity' && currentActivityIndex > 0) {
+            currentActivityIndex--;
+            renderActivity();
+        }
+    });
+    activitySection.addEventListener('input', handlePasswordInput);
+    
+    // AI Playground Logic
+    const generateSqlBtn = document.getElementById('generate-sql-btn');
+    const explainSqlBtn = document.getElementById('explain-sql-btn');
+
+    async function callGemini(prompt) {
+        const apiKey = ""; 
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+        const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+             if (result.candidates && result.candidates.length > 0 &&
+              result.candidates[0].content && result.candidates[0].content.parts &&
+              result.candidates[0].content.parts.length > 0) {
+                return result.candidates[0].content.parts[0].text;
+            }
+        } catch (error) {
+            console.error("Gemini API call failed:", error);
+            return "Error: Could not connect to the AI service.";
+        }
+        return "Sorry, I couldn't generate a response.";
+    }
+
+    generateSqlBtn.addEventListener('click', async () => {
+        const userInput = document.getElementById('ai-playground-input').value;
+        if (!userInput.trim()) return;
+
+        const btnText = document.getElementById('generate-sql-btn-text');
+        const spinner = document.getElementById('generate-sql-spinner');
+        const outputContainer = document.getElementById('ai-output-container');
+        const sqlOutput = document.getElementById('generated-sql');
+        const explanationOutput = document.getElementById('explanation-output');
+
+        btnText.classList.add('hidden');
+        spinner.classList.remove('hidden');
+        generateSqlBtn.disabled = true;
+
+        const schema = `employees(id, name, department, salary), products(product_id, product_name, category), sales(sale_id, product_id, quantity, sale_date)`;
+        const prompt = `Based on the following schema: ${schema}. Write a single, valid MS SQL query for the following request. Only return the SQL code, with no explanations or backticks: "${userInput}"`;
+        
+        const generatedSql = await callGemini(prompt);
+        
+        sqlOutput.textContent = generatedSql;
+        outputContainer.classList.remove('hidden');
+        explanationOutput.classList.add('hidden');
+        
+        btnText.classList.remove('hidden');
+        spinner.classList.add('hidden');
+        generateSqlBtn.disabled = false;
+    });
+
+    explainSqlBtn.addEventListener('click', async () => {
+        const sqlQuery = document.getElementById('generated-sql').textContent;
+        if (!sqlQuery.trim()) return;
+        
+        const btnText = document.getElementById('explain-sql-btn-text');
+        const spinner = document.getElementById('explain-sql-spinner');
+        const explanationOutput = document.getElementById('explanation-output');
+
+        btnText.classList.add('hidden');
+        spinner.classList.remove('hidden');
+        explainSqlBtn.disabled = true;
+
+        const prompt = `Explain the following SQL query to a beginner. Break it down step-by-step in simple terms. Use markdown for formatting. Query: \`\`\`sql\n${sqlQuery}\n\`\`\``;
+
+        const explanation = await callGemini(prompt);
+        explanationOutput.innerHTML = explanation.replace(/\n/g, '<br>'); // Simple markdown conversion
+        explanationOutput.classList.remove('hidden');
+
+        btnText.classList.remove('hidden');
+        spinner.classList.add('hidden');
+        explainSqlBtn.disabled = false;
+    });
+
+    document.getElementById('export-pdf-btn').addEventListener('click', () => {
+        const doc = new jsPDF();
+        let y = 15;
+
+        doc.setFontSize(22);
+        doc.text("DataNOW's Exclusive MS SQL Masterclass", 10, y);
+        y += 10;
+
+        const sectionsToExport = ['intro', 'setup', 'fundamentals', 'defining'];
+        sectionsToExport.forEach(id => {
+            const section = document.getElementById(id);
+            const titleElement = section.querySelector('h1, h2');
+            const title = titleElement ? titleElement.textContent : 'Untitled Section';
+            
+            y += 10;
+            if (y > 280) {
+                doc.addPage();
+                y = 15;
+            }
+            doc.setFontSize(18);
+            doc.text(title, 10, y);
+            y += 8;
+            
+            doc.setFontSize(12);
+            const paragraphs = section.querySelectorAll('p');
+            paragraphs.forEach(p => {
+                if (y > 280) {
+                    doc.addPage();
+                    y = 15;
+                }
+                const text = doc.splitTextToSize(p.textContent, 180);
+                doc.text(text, 10, y);
+                y += (text.length * 5) + 3;
+            });
+
+            if (id === 'fundamentals') {
+                doc.addPage();
+                y = 15;
+                doc.setFontSize(16);
+                doc.text("Supplementary Topics", 10, y);
+                y += 10;
+
+                doc.setFontSize(14);
+                doc.text("Handling NULLs", 10, y);
+                y+= 6;
+                doc.setFontSize(12);
+                doc.text(doc.splitTextToSize("A NULL value is a field with no value. It is important to handle NULLs correctly in your queries using IS NULL or IS NOT NULL, as they don't equal any value, not even themselves.", 180), 10, y);
+                y+=20;
+
+                doc.setFontSize(14);
+                doc.text("Using ALIASES", 10, y);
+                y+= 6;
+                doc.setFontSize(12);
+                doc.text(doc.splitTextToSize("Aliases (using AS) make queries more readable by giving temporary names to tables and columns. Example: SELECT c.CustomerName AS Name FROM Customers AS c;", 180), 10, y);
+                y+=20;
+            }
+        });
+
+        doc.save('SQL_DDL_Masterclass_Lecture.pdf');
+    });
+
+    renderActivity();
+    
+});
+</script>
+
+</body>
+</html>
