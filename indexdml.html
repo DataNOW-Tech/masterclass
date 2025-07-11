@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataNOW's Exclusive MS SQL DML Masterclass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-blue: #145da1;
+            --brand-red: #ee272a;
+            --brand-yellow: #fed966;
+            --brand-white: #ffffff;
+            --brand-dark: #2d3748;
+            --brand-light-gray: #f7fafc;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--brand-light-gray);
+            color: var(--brand-dark);
+        }
+        .active-nav {
+            color: var(--brand-yellow); 
+            font-weight: 600;
+            position: relative;
+        }
+        .active-nav::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--brand-yellow);
+        }
+        .code-block {
+            background-color: #263238;
+            color: #eceff1;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .query-playground textarea {
+            background-color: #263238;
+            color: #82aaff;
+            font-family: 'Courier New', Courier, monospace;
+            border: 1px solid #4a5568;
+        }
+        .query-playground button {
+            background-color: var(--brand-blue);
+            transition: background-color 0.3s;
+        }
+         .query-playground button:hover {
+            background-color: #0f4a81;
+        }
+        .icon-symbol {
+            font-size: 1.5rem;
+            line-height: 1;
+            color: var(--brand-blue);
+        }
+        .locked-answer {
+            background-color: #e2e8f0;
+            border: 2px dashed #94a3b8;
+            color: transparent;
+            user-select: none;
+            filter: blur(4px);
+            transition: all 0.3s ease-in-out;
+        }
+        .unlocked-answer {
+            background-color: #f0fdf4;
+            border: 2px solid #22c55e;
+            filter: blur(0);
+            color: inherit;
+        }
+        .sql-command-map .category-box {
+            background-color: var(--brand-blue);
+            color: var(--brand-white);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        .sql-command-map .command-group {
+            border-left: 2px solid var(--brand-blue);
+            padding-left: 1.5rem;
+            margin-left: 1rem;
+        }
+        .sql-command-map .command-item {
+            background-color: var(--brand-white);
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+        .sql-command-map .highlight-current .category-box {
+            background-color: var(--brand-red);
+        }
+        .sql-command-map .highlight-current .command-group {
+             border-left: 2px solid var(--brand-red);
+        }
+        .sql-command-map .highlight-previous .category-box {
+            background-color: #a0aec0;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav id="navbar" class="bg-[var(--brand-blue)] sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center flex-shrink-0">
+                    <span class="text-2xl font-bold text-white">DataNOW, Inc.</span>
+                </div>
+                 <div class="hidden md:block">
+                    <div id="desktop-menu" class="ml-10 flex items-baseline space-x-4">
+                        <a href="#intro" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Introduction</a>
+                        <a href="#sql-map" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">SQL Map</a>
+                        <a href="#fundamentals" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Fundamentals</a>
+                        <a href="#manipulating" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Manipulating Data</a>
+                        <a href="#playground" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Playground</a>
+                        <a href="#lab" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">SSMS Lab</a>
+                        <a href="#activity" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Activity</a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button id="mobile-menu-button" type="button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <span class="sr-only">Open main menu</span>
+                        <svg id="hamburger-icon" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg id="close-icon" class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#intro" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Introduction</a>
+                <a href="#sql-map" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">SQL Map</a>
+                <a href="#fundamentals" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Fundamentals</a>
+                <a href="#manipulating" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Manipulating Data</a>
+                <a href="#playground" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Playground</a>
+                <a href="#lab" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">SSMS Lab</a>
+                <a href="#activity" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Activity</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="intro" class="py-16 sm:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center fade-in-section">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-[var(--brand-dark)] tracking-tight">DataNOW's DML Masterclass</h1>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-700">Welcome! This session focuses on Data Manipulation Language (DML), the part of SQL used to add, modify, and delete data within your tables.</p>
+            </div>
+        </section>
+
+        <section id="sql-map" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section sql-command-map">
+                <h2 class="text-3xl font-bold text-center text-[var(--brand-dark)] tracking-tight">SQL Command Overview</h2>
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="highlight-previous">
+                        <div class="category-box">DDL (Previous Topic)</div>
+                        <div class="command-group mt-4 space-y-2">
+                            <div class="command-item">CREATE</div>
+                            <div class="command-item">ALTER</div>
+                            <div class="command-item">DROP</div>
+                        </div>
+                    </div>
+                    <div class="highlight-current">
+                        <div class="category-box">DML (Current Topic)</div>
+                        <div class="command-group mt-4 space-y-2">
+                            <div class="command-item">INSERT</div>
+                            <div class="command-item">UPDATE</div>
+                            <div class="command-item">DELETE</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="category-box">DQL (Next Topic)</div>
+                        <div class="command-group mt-4 space-y-2">
+                            <div class="command-item">SELECT</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="fundamentals" class="py-16 sm:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">DML Fundamentals</h2>
+                    <p class="mt-4 text-lg max-w-3xl mx-auto text-gray-700">To change data in a database, you must first understand the core commands and how to use them safely.</p>
+                </div>
+                <div class="mt-12 max-w-5xl mx-auto">
+                    <div class="mb-4 border-b border-gray-300">
+                        <ul class="flex flex-wrap -mb-px" id="fundamentals-tabs">
+                            <li class="mr-2"><button data-tab="tab-what-is-dml" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg font-semibold">What is DML?</button></li>
+                            <li class="mr-2"><button data-tab="tab-insert" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">INSERT INTO</button></li>
+                            <li class="mr-2"><button data-tab="tab-update" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">UPDATE</button></li>
+                            <li class="mr-2"><button data-tab="tab-delete" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">DELETE</button></li>
+                        </ul>
+                    </div>
+                    <div id="fundamentals-content" class="bg-brand-white p-6 rounded-lg shadow-lg">
+                        <div id="tab-what-is-dml" class="fundamentals-tab-content space-y-4"></div>
+                        <div id="tab-insert" class="fundamentals-tab-content hidden space-y-6"></div>
+                        <div id="tab-update" class="fundamentals-tab-content hidden space-y-4"></div>
+                        <div id="tab-delete" class="fundamentals-tab-content hidden space-y-4"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="manipulating" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Manipulating Data with DML</h2>
+                    <p class="mt-4 text-lg max-w-3xl mx-auto text-gray-700">This section is a code explorer for the most fundamental DML commands.</p>
+                </div>
+                <div class="mt-12 md:flex md:space-x-8">
+                    <div class="md:w-1/4 mb-8 md:mb-0">
+                        <div class="space-y-2">
+                            <button data-command="insert" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">INSERT INTO</button>
+                            <button data-command="update" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">UPDATE</button>
+                            <button data-command="delete" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">DELETE</button>
+                        </div>
+                    </div>
+                    <div class="md:w-3/4 bg-brand-white p-6 rounded-lg shadow-lg">
+                        <div id="command-display" class="space-y-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="playground" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section query-playground">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">DML Playground</h2>
+                    <p class="mt-4 text-lg text-gray-700">Time to manipulate data! Write DML statements in the editor below. The application will simulate the result by showing you the updated table.</p>
+                </div>
+                <div id="playground-container" class="mt-12 bg-brand-white p-6 rounded-lg shadow-lg">
+                </div>
+            </div>
+        </section>
+        
+        <section id="lab" class="py-16 sm:py-20 bg-gray-100">
+             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Hands-On Lab (SSMS)</h2>
+                    <p class="mt-4 text-lg text-gray-700">For a full database experience, download the script below, run it in SSMS, and then tackle the challenges.</p>
+                </div>
+                <div class="mt-12 space-y-8">
+                    <div id="lab-challenges" class="space-y-8"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="activity" class="py-16 sm:py-20">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+               <div class="text-center">
+                   <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Activity for Next Week</h2>
+                   <p class="mt-4 text-lg text-gray-700">Apply what you've learned! Use the `SampleDB` database from the SSMS Lab to solve these challenges. Enter the instructor password to unlock the answers.</p>
+               </div>
+               <div id="activity-container" class="mt-12">
+               </div>
+           </div>
+       </section>
+    </main>
+    
+    <footer class="bg-[var(--brand-dark)]">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-300">
+            <p>DataNOW's Exclusive MS SQL Masterclass | A Learning Resource</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const { jsPDF } = window.jspdf;
+
+    const brandColors = {
+        blue: '#145da1',
+        red: '#ee272a',
+        yellow: '#fed966',
+    };
+    
+    const dmlCommandsData = {
+        insert: { title: 'INSERT INTO', description: 'Adds a new row of data to a table.', code: `INSERT INTO Customers (CustomerName, City, Country)\nVALUES ('Cardinal', 'Stavanger', 'Norway');` },
+        update: { title: 'UPDATE', description: 'Modifies existing records in a table. Always use a WHERE clause!', code: `UPDATE Customers\nSET City = 'Oslo'\nWHERE CustomerName = 'Cardinal';` },
+        delete: { title: 'DELETE', description: 'Deletes existing records from a table. Always use a WHERE clause!', code: `DELETE FROM Customers\nWHERE CustomerName = 'Cardinal';` }
+    };
+    
+    const labChallengesData = [
+        {
+            title: 'Lab Task 1: Inserting Data',
+            challenges: [
+                { prompt: "1. Add a new product to the `Products` table: 'Laptop' with a price of 1200.", solution: "INSERT INTO Products (ProductName, Price)\nVALUES ('Laptop', 1200);" },
+                { prompt: "2. Insert two new customers in a single statement: ('Gadget Gals', 'London', 'UK') and ('Tech Titans', 'San Francisco', 'USA').", solution: "INSERT INTO Customers (CustomerName, City, Country)\nVALUES ('Gadget Gals', 'London', 'UK'), ('Tech Titans', 'San Francisco', 'USA');" },
+            ]
+        },
+        {
+            title: 'Lab Task 2: Updating Data',
+            challenges: [
+                { prompt: "3. The price of 'Chai' has increased. Update its price to 20.00.", solution: "UPDATE Products\nSET Price = 20.00\nWHERE ProductName = 'Chai';" },
+                { prompt: "4. A customer moved. Update the city to 'Oslo' for the customer named 'Around the Horn'.", solution: "UPDATE Customers\nSET City = 'Oslo'\nWHERE CustomerName = 'Around the Horn';" },
+                { prompt: "5. Give all products in the 'Electronics' category a 5% price increase.", solution: "UPDATE Products\nSET Price = Price * 1.05\nWHERE Category = 'Electronics';" },
+            ]
+        },
+        {
+            title: 'Lab Task 3: Deleting Data',
+            challenges: [
+                { prompt: "6. The product 'Chang' has been discontinued. Delete it from the `Products` table.", hint: "Use a WHERE clause to specify which product to delete.", solution: "DELETE FROM Products\nWHERE ProductName = 'Chang';" },
+                { prompt: "7. Delete all orders placed before the year 2023.", solution: "DELETE FROM Orders\nWHERE OrderDate < '2023-01-01';" },
+            ]
+        },
+        {
+            title: 'Lab Task 4: Advanced Manipulation',
+            challenges: [
+                 { prompt: "8. Insert a new customer, 'Web World', from 'Berlin', 'Germany', and immediately add an order for them for the product 'Tofu'.", solution: "-- Step 1: Insert the customer\nINSERT INTO Customers (CustomerName, City, Country) VALUES ('Web World', 'Berlin', 'Germany');\n\n-- Step 2: Get the new CustomerID (this would be dynamic in a real script)\n-- For this lab, assume the new CustomerID is 7\n\n-- Step 3: Insert the order\nINSERT INTO Orders (CustomerID, ProductID, OrderDate) VALUES (7, 5, GETDATE());" },
+                 { prompt: "9. A customer, 'The Big Cheese', has closed their account. Delete their orders and then their customer record.", solution: "-- Step 1: Delete the orders\nDELETE FROM Orders WHERE CustomerID = 5;\n\n-- Step 2: Delete the customer\nDELETE FROM Customers WHERE CustomerID = 5;" },
+                 { prompt: "10. The 'Mishi Kobe Niku' product name is too long. Update it to 'Kobe Beef'.", solution: "UPDATE Products\nSET ProductName = 'Kobe Beef'\nWHERE ProductName = 'Mishi Kobe Niku';" },
+            ]
+        }
+    ];
+
+    const playgroundData = {
+        initialData: [
+            { id: 1, name: 'Alice', department: 'Sales', salary: 70000 },
+            { id: 2, name: 'Bob', department: 'Engineering', salary: 95000 },
+            { id: 3, name: 'Charlie', department: 'Engineering', salary: 110000 },
+            { id: 4, name: 'Diana', department: 'Sales', salary: 85000 },
+            { id: 5, name: 'Eve', department: 'Marketing', salary: 60000 },
+        ],
+        challenges: [
+            {
+                question: "A new employee, 'Frank', has joined the 'Sales' department with a salary of 65000. Insert this new record into the `employees` table.",
+                validate: (query) => /INSERT\s+INTO\s+employees\s*\(.*id,\s*name,\s*department,\s*salary.*\)\s*VALUES\s*\(.*6,\s*'Frank',\s*'Sales',\s*65000.*\)/is.test(query.replace(/\n/g, " ")),
+            },
+            {
+                question: "Bob received a promotion! Update his salary in the `employees` table to 105000.",
+                validate: (query) => /UPDATE\s+employees\s+SET\s+salary\s*=\s*105000\s+WHERE\s+name\s*=\s*'Bob'/i.test(query.trim()),
+            },
+            {
+                question: "Eve has left the company. Delete her record from the `employees` table.",
+                validate: (query) => /DELETE\s+FROM\s+employees\s+WHERE\s+name\s*=\s*'Eve'/i.test(query.trim()),
+            },
+            {
+                question: "The entire 'Engineering' department gets a 10% salary increase. Update their records.",
+                validate: (query) => /UPDATE\s+employees\s+SET\s+salary\s*=\s*salary\s*\*\s*1.1\s+WHERE\s+department\s*=\s*'Engineering'/i.test(query.replace(/\n/g, " ")),
+            },
+            {
+                question: "A new hire, 'Grace', is joining the 'Marketing' team with a salary of 72000. Insert her record.",
+                validate: (query) => /INSERT\s+INTO\s+employees\s*\(.*id,\s*name,\s*department,\s*salary.*\)\s*VALUES\s*\(.*7,\s*'Grace',\s*'Marketing',\s*72000.*\)/is.test(query.replace(/\n/g, " ")),
+            }
+        ]
+    };
+    let currentPlaygroundChallenge = 0;
+    let currentPlaygroundData = [];
+
+    const activityData = [
+        { question: "Insert a new customer: 'DataNOW Inc.', City: 'Toronto', Country: 'Canada'.", answer: `INSERT INTO Customers (CustomerName, City, Country) VALUES ('DataNOW Inc.', 'Toronto', 'Canada');` },
+        { question: "The customer 'Alfreds Futterkiste' has moved to a new city, 'Hamburg'. Update their record.", answer: `UPDATE Customers SET City = 'Hamburg' WHERE CustomerName = 'Alfreds Futterkiste';` },
+        { question: "All products with a price less than 15 have been discontinued. Delete them.", answer: `DELETE FROM Products WHERE Price < 15;` },
+        { question: "A new order has been placed for 'Tofu' by the customer 'The Big Cheese'. Insert this order into the `Orders` table.", answer: `INSERT INTO Orders (ProductID, CustomerID, OrderDate) VALUES (5, 5, GETDATE());` },
+        { question: "Increase the price of all products by 10%.", answer: `UPDATE Products SET Price = Price * 1.10;` },
+        { question: "A customer 'Ana Trujillo' is moving to 'Monterrey'. Update her city.", answer: "UPDATE Customers\nSET City = 'Monterrey'\nWHERE CustomerName = 'Ana Trujillo Emparedados y helados';" },
+        { question: "Add a new product 'Green Tea' with a price of 15.00.", answer: "INSERT INTO Products (ProductName, Price)\nVALUES ('Green Tea', 15.00);" },
+        { question: "The customer 'Antonio Moreno Taquería' has gone out of business. Delete their record.", answer: "DELETE FROM Customers\nWHERE CustomerName = 'Antonio Moreno Taquería';" },
+        { question: "Double the salary of all employees in the 'Engineering' department.", answer: "UPDATE employees\nSET salary = salary * 2\nWHERE department = 'Engineering';" },
+        { question: "Delete all sales records that occurred before January 6th, 2024.", answer: "DELETE FROM sales\nWHERE sale_date < '2024-01-06';" },
+    ];
+    let currentActivityIndex = 0;
+    const labPassword = "DML_Lab_Access";
+    const activityPassword = "DataManipulator25";
+
+    const animationObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in-section').forEach(section => animationObserver.observe(section));
+
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+    const closeIcon = document.getElementById('close-icon');
+
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        hamburgerIcon.classList.toggle('hidden');
+        closeIcon.classList.toggle('hidden');
+    });
+
+    document.querySelectorAll('.nav-link-mobile').forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            hamburgerIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+        });
+    });
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        document.querySelectorAll('main section').forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 150) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active-nav');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active-nav');
+            }
+        });
+    });
+
+    const fundamentalsTabs = document.getElementById('fundamentals-tabs');
+    const fundamentalsTabButtons = fundamentalsTabs.querySelectorAll('.fundamentals-tab-button');
+    const fundamentalsTabContents = document.getElementById('fundamentals-content').querySelectorAll('.fundamentals-tab-content');
+    
+    document.querySelector('#tab-what-is-dml').innerHTML = `<h3 class="text-xl font-semibold">What is DML?</h3><p>Data Manipulation Language (DML) is used to manage the data within schema objects. It includes commands to insert, update, and delete data from your tables.</p><div class="text-center mt-4"><span class="text-6xl">✏️</span></div>`;
+    document.querySelector('#tab-insert').innerHTML = `<h3 class="text-xl font-semibold">The INSERT INTO Statement</h3><p>The <code>INSERT INTO</code> statement is used to add new rows of data to a table.</p><div class="code-block mt-4">INSERT INTO Customers (CustomerName, City, Country)\nVALUES ('New Customer', 'New York', 'USA');</div>`;
+    document.querySelector('#tab-update').innerHTML = `<h3 class="text-xl font-semibold">The UPDATE Statement</h3><p>The <code>UPDATE</code> statement is used to modify existing records in a table. The <code>WHERE</code> clause is crucial to specify which records to update.</p><div class="code-block mt-4">UPDATE Customers\nSET City = 'San Francisco'\nWHERE CustomerName = 'New Customer';</div>`;
+    document.querySelector('#tab-delete').innerHTML = `<h3 class="text-xl font-semibold">The DELETE Statement</h3><p>The <code>DELETE</code> statement is used to delete existing records from a table. The <code>WHERE</code> clause specifies which record or records should be deleted.</p><div class="code-block mt-4">DELETE FROM Customers\nWHERE CustomerName = 'New Customer';</div>`;
+    
+    fundamentalsTabs.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            const tabId = e.target.getAttribute('data-tab');
+            fundamentalsTabButtons.forEach(btn => {
+                btn.classList.remove('border-[var(--brand-blue)]', 'text-[var(--brand-blue)]');
+                btn.classList.add('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+            });
+            e.target.classList.add('border-[var(--brand-blue)]', 'text-[var(--brand-blue)]');
+            e.target.classList.remove('border-transparent');
+            fundamentalsTabContents.forEach(content => content.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+    });
+    fundamentalsTabButtons[0].click();
+    
+    const commandButtonsContainer = document.querySelector('#manipulating .md\\:w-1\\/4 .space-y-2');
+    const commandDisplay = document.getElementById('command-display');
+    commandButtonsContainer.addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON') {
+            const command = e.target.dataset.command;
+            commandButtonsContainer.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('bg-[var(--brand-blue)]', 'text-white');
+                btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
+            });
+            e.target.classList.add('bg-[var(--brand-blue)]', 'text-white');
+            e.target.classList.remove('bg-gray-200');
+            const data = dmlCommandsData[command];
+            commandDisplay.innerHTML = `<h3 class="text-xl font-semibold">${data.title}</h3><p>${data.description}</p><div class="code-block">${data.code.replace(/</g, "&lt;")}</div>`;
+        }
+    });
+    commandButtonsContainer.querySelector('button').click();
+
+    const labContainer = document.getElementById('lab-challenges');
+    labChallengesData.forEach((taskGroup, groupIndex) => {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'bg-brand-white p-6 rounded-lg shadow-lg';
+        const titleEl = document.createElement('h3');
+        titleEl.className = 'text-xl font-semibold text-[var(--brand-dark)] mb-4';
+        titleEl.textContent = taskGroup.title;
+        groupEl.appendChild(titleEl);
+
+        const questionsContainer = document.createElement('div');
+        questionsContainer.className = 'space-y-3 mb-4';
+        taskGroup.challenges.forEach(challenge => {
+             questionsContainer.innerHTML += `<p class="font-medium">${challenge.prompt}</p>`;
+        });
+        groupEl.appendChild(questionsContainer);
+        
+        const solutionsDiv = document.createElement('div');
+        solutionsDiv.className = 'locked-answer p-4 rounded-lg';
+        solutionsDiv.setAttribute('data-answer-id', `lab-${groupIndex}`);
+        const challengesSolutions = document.createElement('div');
+        challengesSolutions.className = 'space-y-3';
+        taskGroup.challenges.forEach(challenge => {
+            let hintHTML = challenge.hint ? `<p class="text-sm text-gray-500 mb-1 italic"><strong>Hint:</strong> ${challenge.hint}</p>` : '';
+            challengesSolutions.innerHTML += `
+                <div>
+                    <p class="font-medium">${challenge.prompt}</p>
+                    ${hintHTML}
+                    <div class="code-block">${challenge.solution.replace(/</g, "&lt;")}</div>
+                </div>
+            `;
+        });
+        solutionsDiv.appendChild(challengesSolutions);
+        groupEl.appendChild(solutionsDiv);
+
+        const unlockDiv = document.createElement('div');
+        unlockDiv.className = 'mt-4 space-y-2 sm:space-y-0 sm:flex sm:space-x-2';
+        unlockDiv.setAttribute('data-unlock-id', `lab-${groupIndex}`);
+        unlockDiv.innerHTML = `
+            <input type="password" placeholder="Enter password for solutions" class="w-full sm:flex-grow p-2 border rounded-md">
+            <button class="w-full sm:w-auto bg-[var(--brand-blue)] hover:bg-[#0f4a81] text-white font-semibold px-4 py-2 rounded-md">Unlock</button>
+        `;
+        groupEl.appendChild(unlockDiv);
+        const errorEl = document.createElement('p');
+        errorEl.className = 'text-red-600 text-sm mt-1 h-4';
+        errorEl.setAttribute('data-error-id', `lab-${groupIndex}`);
+        groupEl.appendChild(errorEl);
+
+        labContainer.appendChild(groupEl);
+    });
+
+    const playgroundContainer = document.getElementById('playground-container');
+    
+    function renderPlayground() {
+        const challenge = playgroundData.challenges[currentPlaygroundChallenge];
+        playgroundContainer.innerHTML = `
+            <div>
+                <h4 class="font-semibold text-lg mb-2">Challenge #${currentPlaygroundChallenge + 1} of ${playgroundData.challenges.length}</h4>
+                <p class="mb-4 text-gray-700">${challenge.question}</p>
+            </div>
+            <div class="mt-6">
+                <textarea id="query-input" rows="4" class="w-full p-2 rounded-md" placeholder="INSERT INTO ..."></textarea>
+                <div id="feedback" class="text-sm my-2 h-5 font-medium"></div>
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                    <button id="run-query" class="w-full text-white font-semibold px-4 py-2 rounded-md">Run DML</button>
+                    <button id="reset-query" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded-md">Reset</button>
+                    <button id="next-challenge" class="hidden lg:block w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md">Next Challenge &rarr;</button>
+                </div>
+                 <button id="next-challenge-mobile" class="hidden lg:hidden mt-2 w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md">Next Challenge &rarr;</button>
+            </div>
+            <div class="mt-6">
+                <h5 class="font-semibold mb-2">Resulting Table Data</h5>
+                <div id="result-table">
+                </div>
+            </div>
+        `;
+        currentPlaygroundData = JSON.parse(JSON.stringify(playgroundData.initialData));
+        document.getElementById('result-table').innerHTML = renderTable(currentPlaygroundData);
+    }
+    
+    function renderTable(data) {
+        if (!data || data.length === 0) return '<p class="text-gray-500 italic">No data to display.</p>';
+        const headers = Object.keys(data[0]);
+        let table = '<div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead><tr class="bg-gray-100">';
+        headers.forEach(h => table += `<th class="p-2">${h}</th>`);
+        table += '</tr></thead><tbody>';
+        data.forEach(row => {
+            table += '<tr class="border-b">';
+            headers.forEach(h => table += `<td class="p-2">${row[h]}</td>`);
+            table += '</tr>';
+        });
+        table += '</tbody></table></div>';
+        return table;
+    }
+
+    function runQuery() {
+        const query = document.getElementById('query-input').value;
+        const feedbackEl = document.getElementById('feedback');
+        const resultTable = document.getElementById('result-table');
+        const nextBtn = document.getElementById('next-challenge');
+        const nextBtnMobile = document.getElementById('next-challenge-mobile');
+        const challenge = playgroundData.challenges[currentPlaygroundChallenge];
+
+        if (challenge.validate(query)) {
+            feedbackEl.textContent = 'Correct! Data updated.';
+            feedbackEl.className = 'text-sm my-2 h-5 font-medium text-green-600';
+            nextBtn.classList.remove('hidden');
+            nextBtnMobile.classList.remove('hidden');
+            
+            // Simulate the DML operation
+            if (currentPlaygroundChallenge === 0) { // INSERT
+                currentPlaygroundData.push({id: 6, name: 'Frank', department: 'Sales', salary: 65000});
+            } else if (currentPlaygroundChallenge === 1) { // UPDATE
+                const bob = currentPlaygroundData.find(e => e.name === 'Bob');
+                if(bob) bob.salary = 105000;
+            } else if (currentPlaygroundChallenge === 2) { // DELETE
+                currentPlaygroundData = currentPlaygroundData.filter(e => e.name !== 'Eve');
+            }
+            resultTable.innerHTML = renderTable(currentPlaygroundData);
+
+        } else {
+            feedbackEl.textContent = 'Not quite right. Check your syntax!';
+            feedbackEl.className = 'text-sm my-2 h-5 font-medium text-red-600';
+            nextBtn.classList.add('hidden');
+            nextBtnMobile.classList.add('hidden');
+            resultTable.innerHTML = renderTable(currentPlaygroundData);
+        }
+    }
+
+    function resetQuery() {
+        document.getElementById('query-input').value = '';
+        const feedbackEl = document.getElementById('feedback');
+        feedbackEl.textContent = '';
+        feedbackEl.className = 'text-sm my-2 h-5 font-medium';
+        currentPlaygroundData = JSON.parse(JSON.stringify(playgroundData.initialData));
+        document.getElementById('result-table').innerHTML = renderTable(currentPlaygroundData);
+        document.getElementById('next-challenge').classList.add('hidden');
+        document.getElementById('next-challenge-mobile').classList.add('hidden');
+    }
+    
+    function handlePlaygroundClick(e) {
+        if (e.target.id === 'run-query') runQuery();
+        if (e.target.id === 'reset-query') resetQuery();
+        if (e.target.id === 'next-challenge' || e.target.id === 'next-challenge-mobile') {
+            currentPlaygroundChallenge = (currentPlaygroundChallenge + 1) % playgroundData.challenges.length;
+            renderPlayground();
+        }
+    }
+    
+    renderPlayground();
+    playgroundContainer.addEventListener('click', handlePlaygroundClick);
+
+    const activityContainer = document.getElementById('activity-container');
+    
+    function renderActivity() {
+        const activity = activityData[currentActivityIndex];
+        activityContainer.innerHTML = `
+            <div class="bg-brand-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="font-semibold text-lg text-gray-800">${currentActivityIndex + 1}. ${activity.question}</h4>
+                    <span class="text-sm font-medium text-gray-500">${currentActivityIndex + 1} / ${activityData.length}</span>
+                </div>
+                <div class="mt-4 p-4 rounded-lg locked-answer" data-answer-id="${currentActivityIndex}">
+                    <div class="code-block">${activity.answer.replace(/</g, "&lt;")}</div>
+                </div>
+                <div class="mt-4 space-y-2 sm:space-y-0 sm:flex sm:space-x-2" data-unlock-id="${currentActivityIndex}">
+                    <input type="password" placeholder="Enter password to unlock" class="w-full sm:flex-grow p-2 border rounded-md">
+                    <button class="w-full sm:w-auto bg-[var(--brand-blue)] hover:bg-[#0f4a81] text-white font-semibold px-4 py-2 rounded-md">Unlock</button>
+                </div>
+                <p class="text-red-600 text-sm mt-1 h-4" data-error-id="${currentActivityIndex}"></p>
+            </div>
+            <div class="flex justify-between mt-4">
+                <button id="prev-activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">&larr; Previous</button>
+                <button id="next-activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">Next &rarr;</button>
+            </div>
+        `;
+        document.getElementById('prev-activity').disabled = currentActivityIndex === 0;
+        document.getElementById('next-activity').disabled = currentActivityIndex === activityData.length - 1;
+    }
+
+    function handlePasswordUnlock(e, password) {
+        const wrapper = e.target.closest('[data-unlock-id]');
+        if (!wrapper || !e.target.matches('button')) return;
+        
+        const id = wrapper.dataset.unlockId;
+        const input = wrapper.querySelector('input');
+        const answerEl = document.querySelector(`[data-answer-id="${id}"]`);
+        const errorEl = document.querySelector(`[data-error-id="${id}"]`);
+
+        if (input.value === password) {
+            answerEl.classList.remove('locked-answer');
+            answerEl.classList.add('unlocked-answer');
+            errorEl.textContent = '';
+        } else {
+            errorEl.textContent = 'Wrong password.';
+            input.value = '';
+        }
+    }
+
+    function handlePasswordInput(e) {
+        if(e.target.tagName !== 'INPUT' || e.target.type !== 'password') return;
+        
+        const wrapper = e.target.closest('[data-unlock-id]');
+        const id = wrapper.dataset.unlockId;
+        const answerEl = document.querySelector(`[data-answer-id="${id}"]`);
+
+        if(e.target.value === '') {
+           answerEl.classList.add('locked-answer');
+           answerEl.classList.remove('unlocked-answer');
+        }
+    }
+
+    document.getElementById('lab-challenges').addEventListener('click', e => handlePasswordUnlock(e, labPassword));
+    document.getElementById('lab-challenges').addEventListener('input', handlePasswordInput);
+    
+    const activitySection = document.getElementById('activity-container');
+    activitySection.addEventListener('click', e => {
+        handlePasswordUnlock(e, activityPassword);
+        if (e.target.id === 'next-activity' && currentActivityIndex < activityData.length - 1) {
+            currentActivityIndex++;
+            renderActivity();
+        }
+        if (e.target.id === 'prev-activity' && currentActivityIndex > 0) {
+            currentActivityIndex--;
+            renderActivity();
+        }
+    });
+    activitySection.addEventListener('input', handlePasswordInput);
+    
+    renderActivity();
+    
+});
+</script>
+
+</body>
+</html>
