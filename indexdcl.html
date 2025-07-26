@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataNOW's Exclusive MS SQL DCL Masterclass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-blue: #145da1;
+            --brand-red: #ee272a;
+            --brand-yellow: #fed966;
+            --brand-white: #ffffff;
+            --brand-dark: #2d3748;
+            --brand-light-gray: #f7fafc;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--brand-light-gray);
+            color: var(--brand-dark);
+        }
+        .active-nav {
+            color: var(--brand-yellow); 
+            font-weight: 600;
+            position: relative;
+        }
+        .active-nav::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--brand-yellow);
+        }
+        .code-block {
+            background-color: #263238;
+            color: #eceff1;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .query-playground textarea {
+            background-color: #263238;
+            color: #82aaff;
+            font-family: 'Courier New', Courier, monospace;
+            border: 1px solid #4a5568;
+        }
+        .query-playground button {
+            background-color: var(--brand-blue);
+            transition: background-color 0.3s;
+        }
+         .query-playground button:hover {
+            background-color: #0f4a81;
+        }
+        .locked-answer {
+            background-color: #e2e8f0;
+            border: 2px dashed #94a3b8;
+            color: transparent;
+            user-select: none;
+            filter: blur(4px);
+            transition: all 0.3s ease-in-out;
+        }
+        .unlocked-answer {
+            background-color: #f0fdf4;
+            border: 2px solid #22c55e;
+            filter: blur(0);
+            color: inherit;
+        }
+        .sql-command-map .category-box {
+            background-color: var(--brand-blue);
+            color: var(--brand-white);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 700;
+            text-align: center;
+        }
+        .sql-command-map .command-group {
+            border-left: 2px solid var(--brand-blue);
+            padding-left: 1.5rem;
+            margin-left: 1rem;
+        }
+        .sql-command-map .command-item {
+            background-color: var(--brand-white);
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            margin-bottom: 0.5rem;
+        }
+        .sql-command-map .highlight-current .category-box {
+            background-color: var(--brand-red);
+        }
+        .sql-command-map .highlight-current .command-group {
+             border-left: 2px solid var(--brand-red);
+        }
+        .sql-command-map .highlight-previous .category-box {
+            background-color: #a0aec0;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav id="navbar" class="bg-[var(--brand-blue)] sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center flex-shrink-0">
+                    <span class="text-2xl font-bold text-white">DataNOW, Inc.</span>
+                </div>
+                 <div class="hidden md:block">
+                    <div id="desktop-menu" class="ml-10 flex items-baseline space-x-4">
+                        <a href="#intro" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Introduction</a>
+                        <a href="#sql-map" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">SQL Map</a>
+                        <a href="#fundamentals" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Fundamentals</a>
+                        <a href="#controlling-access" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Controlling Access</a>
+                        <a href="#playground" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Playground</a>
+                        <a href="#lab" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">SSMS Lab</a>
+                        <a href="#activity" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Activity</a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button id="mobile-menu-button" type="button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <span class="sr-only">Open main menu</span>
+                        <svg id="hamburger-icon" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg id="close-icon" class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#intro" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Introduction</a>
+                <a href="#sql-map" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">SQL Map</a>
+                <a href="#fundamentals" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Fundamentals</a>
+                <a href="#controlling-access" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Controlling Access</a>
+                <a href="#playground" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Playground</a>
+                <a href="#lab" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">SSMS Lab</a>
+                <a href="#activity" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Activity</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="intro" class="py-16 sm:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center fade-in-section">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-[var(--brand-dark)] tracking-tight">DataNOW's DCL Masterclass</h1>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-700">Welcome! This session focuses on Data Control Language (DCL), the part of SQL used to manage permissions and control access to your database.</p>
+            </div>
+        </section>
+
+        <section id="sql-map" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section sql-command-map">
+                <h2 class="text-3xl font-bold text-center text-[var(--brand-dark)] tracking-tight">SQL Command Overview</h2>
+                <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="highlight-previous">
+                        <div class="category-box">DML (Previous Topic)</div>
+                        <div class="command-group mt-4 space-y-2">
+                            <div class="command-item">INSERT</div>
+                            <div class="command-item">UPDATE</div>
+                            <div class="command-item">DELETE</div>
+                        </div>
+                    </div>
+                    <div class="highlight-current">
+                        <div class="category-box">DCL (Current Topic)</div>
+                        <div class="command-group mt-4 space-y-2">
+                            <div class="command-item">GRANT</div>
+                            <div class="command-item">REVOKE</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="category-box">DQL (Future Topic)</div>
+                        <div class="command-group mt-4 space-y-2">
+                            <div class="command-item">SELECT</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="fundamentals" class="py-16 sm:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">DCL Fundamentals</h2>
+                    <p class="mt-4 text-lg max-w-3xl mx-auto text-gray-700">To control access to your database, you must understand users, roles, and privileges.</p>
+                </div>
+                <div class="mt-12 max-w-5xl mx-auto">
+                    <div class="mb-4 border-b border-gray-300">
+                        <ul class="flex flex-wrap -mb-px" id="fundamentals-tabs">
+                            <li class="mr-2"><button data-tab="tab-what-is-dcl" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg font-semibold">What is DCL?</button></li>
+                            <li class="mr-2"><button data-tab="tab-grant" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">GRANT</button></li>
+                            <li class="mr-2"><button data-tab="tab-revoke" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">REVOKE</button></li>
+                            <li class="mr-2"><button data-tab="tab-privileges" class="fundamentals-tab-button inline-block p-4 border-b-2 rounded-t-lg">Privileges</button></li>
+                        </ul>
+                    </div>
+                    <div id="fundamentals-content" class="bg-brand-white p-6 rounded-lg shadow-lg">
+                        <div id="tab-what-is-dcl" class="fundamentals-tab-content space-y-4"></div>
+                        <div id="tab-grant" class="fundamentals-tab-content hidden space-y-6"></div>
+                        <div id="tab-revoke" class="fundamentals-tab-content hidden space-y-4"></div>
+                        <div id="tab-privileges" class="fundamentals-tab-content hidden space-y-4"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="controlling-access" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Controlling Access with DCL</h2>
+                    <p class="mt-4 text-lg max-w-3xl mx-auto text-gray-700">This section is a code explorer for the fundamental DCL commands.</p>
+                </div>
+                <div class="mt-12 md:flex md:space-x-8">
+                    <div class="md:w-1/4 mb-8 md:mb-0">
+                        <div class="space-y-2">
+                            <button data-command="grant" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">GRANT</button>
+                            <button data-command="revoke" class="command-button w-full text-left p-3 rounded-md font-medium bg-gray-200 hover:bg-gray-300">REVOKE</button>
+                        </div>
+                    </div>
+                    <div class="md:w-3/4 bg-brand-white p-6 rounded-lg shadow-lg">
+                        <div id="command-display" class="space-y-4">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="playground" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section query-playground">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">DCL Playground</h2>
+                    <p class="mt-4 text-lg text-gray-700">Time to manage permissions! Write DCL statements in the editor below. The application will simulate the result by showing you the updated permissions.</p>
+                </div>
+                <div id="playground-container" class="mt-12 bg-brand-white p-6 rounded-lg shadow-lg">
+                </div>
+            </div>
+        </section>
+        
+        <section id="lab" class="py-16 sm:py-20 bg-gray-100">
+             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <div class="text-center">
+                    <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Hands-On Lab (SSMS)</h2>
+                    <p class="mt-4 text-lg text-gray-700">For a full database experience, download the script below, run it in SSMS, and then tackle the challenges.</p>
+                </div>
+                <div class="mt-12 space-y-8">
+                    <div id="lab-challenges" class="space-y-8"></div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="activity" class="py-16 sm:py-20">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+               <div class="text-center">
+                   <h2 class="text-3xl font-bold text-[var(--brand-dark)] tracking-tight">Activity for Next Week</h2>
+                   <p class="mt-4 text-lg text-gray-700">Apply what you've learned! Use the `SampleDB` database from the SSMS Lab to solve these challenges. Enter the instructor password to unlock the answers.</p>
+               </div>
+               <div id="activity-container" class="mt-12">
+               </div>
+           </div>
+       </section>
+    </main>
+    
+    <footer class="bg-[var(--brand-dark)]">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-300">
+            <p>DataNOW's Exclusive MS SQL Masterclass | A Learning Resource</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const { jsPDF } = window.jspdf;
+
+    const brandColors = {
+        blue: '#145da1',
+        red: '#ee272a',
+        yellow: '#fed966',
+    };
+    
+    const dclCommandsData = {
+        grant: { title: 'GRANT', description: 'Gives a specific permission to a user.', code: `GRANT SELECT ON Customers TO 'someuser'@'localhost';` },
+        revoke: { title: 'REVOKE', description: 'Removes a specific permission from a user.', code: `REVOKE SELECT ON Customers FROM 'someuser'@'localhost';` }
+    };
+    
+    const labChallengesData = [
+        {
+            title: 'Lab Task 1: Creating Users and Roles',
+            challenges: [
+                { prompt: "1. Create a new login named 'analyst' with a password.", solution: "CREATE LOGIN analyst WITH PASSWORD = 'aStrongPassword123!';" },
+                { prompt: "2. Create a new database user 'analyst_user' for the 'analyst' login.", solution: "CREATE USER analyst_user FOR LOGIN analyst;" },
+                { prompt: "3. Create a new database role named 'readonly'.", solution: "CREATE ROLE readonly;" },
+            ]
+        },
+        {
+            title: 'Lab Task 2: Granting Permissions',
+            challenges: [
+                { prompt: "4. Grant SELECT permission on the `Customers` table to the 'readonly' role.", solution: "GRANT SELECT ON Customers TO readonly;" },
+                { prompt: "5. Add the 'analyst_user' to the 'readonly' role.", solution: "ALTER ROLE readonly ADD MEMBER analyst_user;" },
+                { prompt: "6. Grant INSERT and UPDATE permissions on the `Products` table to 'analyst_user'.", solution: "GRANT INSERT, UPDATE ON Products TO analyst_user;" },
+            ]
+        },
+        {
+            title: 'Lab Task 3: Revoking Permissions',
+            challenges: [
+                { prompt: "7. The analyst should no longer be able to update products. Revoke the UPDATE permission.", solution: "REVOKE UPDATE ON Products FROM analyst_user;" },
+                { prompt: "8. Revoke all permissions on the `Orders` table from the 'readonly' role.", solution: "REVOKE ALL ON Orders FROM readonly;" },
+            ]
+        },
+        {
+            title: 'Lab Task 4: Advanced Control',
+            challenges: [
+                 { prompt: "9. Create a new user 'trainee' and grant them only the ability to SELECT the `ProductName` and `Price` columns from the `Products` table.", solution: "CREATE USER trainee WITHOUT LOGIN;\nGRANT SELECT (ProductName, Price) ON Products TO trainee;" },
+                 { prompt: "10. The 'trainee' user has been promoted. Remove them from the database.", solution: "DROP USER trainee;" },
+            ]
+        }
+    ];
+
+    const playgroundData = {
+        users: {
+            'analyst': ['SELECT on Customers'],
+            'manager': ['SELECT on Employees', 'UPDATE on Employees'],
+        },
+        challenges: [
+            {
+                question: "Grant the 'analyst' user the ability to UPDATE the 'Customers' table.",
+                validate: (query) => /GRANT\s+UPDATE\s+ON\s+Customers\s+TO\s+'analyst'/i.test(query.trim()),
+            },
+            {
+                question: "Revoke the SELECT permission from the 'manager' on the 'Employees' table.",
+                validate: (query) => /REVOKE\s+SELECT\s+ON\s+Employees\s+FROM\s+'manager'/i.test(query.trim()),
+            },
+            {
+                question: "Grant all permissions on the 'Products' table to the 'manager'.",
+                validate: (query) => /GRANT\s+ALL\s+ON\s+Products\s+TO\s+'manager'/i.test(query.trim()),
+            },
+            {
+                question: "Create a new user 'guest' and grant them SELECT permission on the 'Products' table.",
+                validate: (query) => /CREATE\s+USER\s+'guest'.*;\s*GRANT\s+SELECT\s+ON\s+Products\s+TO\s+'guest'/is.test(query.replace(/\n/g, " ")),
+            },
+            {
+                question: "Revoke all permissions from the 'analyst' user on the 'Customers' table.",
+                validate: (query) => /REVOKE\s+ALL\s+ON\s+Customers\s+FROM\s+'analyst'/i.test(query.trim()),
+            }
+        ]
+    };
+    let currentPlaygroundChallenge = 0;
+
+    const activityData = [
+        { question: "Write the command to give a user named 'intern' the ability to insert new records into the `Orders` table.", answer: `GRANT INSERT ON Orders TO intern;` },
+        { question: "Write the command to allow a user 'auditor' to view all data in the `Employees` table.", answer: `GRANT SELECT ON Employees TO auditor;` },
+        { question: "Revoke the ability for the 'intern' user to delete records from the `Orders` table.", answer: `REVOKE DELETE ON Orders FROM intern;` },
+        { question: "Create a new role called 'SalesTeam'.", answer: `CREATE ROLE SalesTeam;` },
+        { question: "Grant SELECT, INSERT, and UPDATE permissions on the `Customers` table to the 'SalesTeam' role.", answer: `GRANT SELECT, INSERT, UPDATE ON Customers TO SalesTeam;` },
+        { question: "Add a user named 'john_doe' to the 'SalesTeam' role.", answer: `ALTER ROLE SalesTeam ADD MEMBER john_doe;` },
+        { question: "Write a command to prevent the 'auditor' user from updating any data in the `Employees` table.", answer: `DENY UPDATE ON Employees TO auditor;` },
+        { question: "Revoke all permissions on the `Products` table from the 'intern' user.", answer: `REVOKE ALL ON Products FROM intern;` },
+        { question: "Give a user 'data_scientist' permission to create new tables in the database.", answer: `GRANT CREATE TABLE TO data_scientist;` },
+        { question: "Remove the 'john_doe' user from the 'SalesTeam' role.", answer: `ALTER ROLE SalesTeam DROP MEMBER john_doe;` },
+    ];
+    let currentActivityIndex = 0;
+    const labPassword = "DCL_Lab_Access";
+    const activityPassword = "DataAccessControl25";
+
+    const animationObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in-section').forEach(section => animationObserver.observe(section));
+
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerIcon = document.getElementById('hamburger-icon');
+    const closeIcon = document.getElementById('close-icon');
+
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        hamburgerIcon.classList.toggle('hidden');
+        closeIcon.classList.toggle('hidden');
+    });
+
+    document.querySelectorAll('.nav-link-mobile').forEach(link => {
+        link.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+            hamburgerIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+        });
+    });
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        document.querySelectorAll('main section').forEach(section => {
+            const sectionTop = section.offsetTop;
+            if (pageYOffset >= sectionTop - 150) {
+                current = section.getAttribute('id');
+            }
+        });
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active-nav');
+            if (link.getAttribute('href') === `#${current}`) {
+                link.classList.add('active-nav');
+            }
+        });
+    });
+
+    const fundamentalsTabs = document.getElementById('fundamentals-tabs');
+    const fundamentalsTabButtons = fundamentalsTabs.querySelectorAll('.fundamentals-tab-button');
+    const fundamentalsTabContents = document.getElementById('fundamentals-content').querySelectorAll('.fundamentals-tab-content');
+    
+    document.querySelector('#tab-what-is-dcl').innerHTML = `<h3 class="text-xl font-semibold">What is DCL?</h3><p>Data Control Language (DCL) is used to control access to data in the database. It's all about security and permissions.</p><div class="text-center mt-4"><span class="text-6xl">🔐</span></div>`;
+    document.querySelector('#tab-grant').innerHTML = `<h3 class="text-xl font-semibold">The GRANT Statement</h3><p>The <code>GRANT</code> statement is used to give users access privileges to the database.</p><div class="code-block mt-4">GRANT SELECT, UPDATE ON MyTable TO someuser;</div>`;
+    document.querySelector('#tab-revoke').innerHTML = `<h3 class="text-xl font-semibold">The REVOKE Statement</h3><p>The <code>REVOKE</code> statement is used to take back permissions from a user.</p><div class="code-block mt-4">REVOKE UPDATE ON MyTable FROM someuser;</div>`;
+    document.querySelector('#tab-privileges').innerHTML = `<h3 class="text-xl font-semibold">Object vs. System Privileges</h3><p>Privileges define the actions a user can perform.</p><div class="grid md:grid-cols-2 gap-4 mt-4"><div class="p-4 bg-gray-50 rounded-lg"><h4 class="font-semibold text-lg">Object Privileges</h4><p>Permissions to perform actions on a specific database object, like a table (e.g., SELECT, INSERT, UPDATE, DELETE).</p></div><div class="p-4 bg-gray-50 rounded-lg"><h4 class="font-semibold text-lg">System Privileges</h4><p>Permissions to perform actions at the database level (e.g., CREATE TABLE, CREATE USER).</p></div></div>`;
+    
+    fundamentalsTabs.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            const tabId = e.target.getAttribute('data-tab');
+            fundamentalsTabButtons.forEach(btn => {
+                btn.classList.remove('border-[var(--brand-blue)]', 'text-[var(--brand-blue)]');
+                btn.classList.add('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+            });
+            e.target.classList.add('border-[var(--brand-blue)]', 'text-[var(--brand-blue)]');
+            e.target.classList.remove('border-transparent');
+            fundamentalsTabContents.forEach(content => content.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+        }
+    });
+    fundamentalsTabButtons[0].click();
+    
+    const commandButtonsContainer = document.querySelector('#controlling-access .md\\:w-1\\/4 .space-y-2');
+    const commandDisplay = document.getElementById('command-display');
+    commandButtonsContainer.addEventListener('click', e => {
+        if (e.target.tagName === 'BUTTON') {
+            const command = e.target.dataset.command;
+            commandButtonsContainer.querySelectorAll('button').forEach(btn => {
+                btn.classList.remove('bg-[var(--brand-blue)]', 'text-white');
+                btn.classList.add('bg-gray-200', 'hover:bg-gray-300');
+            });
+            e.target.classList.add('bg-[var(--brand-blue)]', 'text-white');
+            e.target.classList.remove('bg-gray-200');
+            const data = dclCommandsData[command];
+            commandDisplay.innerHTML = `<h3 class="text-xl font-semibold">${data.title}</h3><p>${data.description}</p><div class="code-block">${data.code.replace(/</g, "&lt;")}</div>`;
+        }
+    });
+    commandButtonsContainer.querySelector('button').click();
+
+    const labContainer = document.getElementById('lab-challenges');
+    labChallengesData.forEach((taskGroup, groupIndex) => {
+        const groupEl = document.createElement('div');
+        groupEl.className = 'bg-brand-white p-6 rounded-lg shadow-lg';
+        const titleEl = document.createElement('h3');
+        titleEl.className = 'text-xl font-semibold text-[var(--brand-dark)] mb-4';
+        titleEl.textContent = taskGroup.title;
+        groupEl.appendChild(titleEl);
+
+        const questionsContainer = document.createElement('div');
+        questionsContainer.className = 'space-y-3 mb-4';
+        taskGroup.challenges.forEach(challenge => {
+             questionsContainer.innerHTML += `<p class="font-medium">${challenge.prompt}</p>`;
+        });
+        groupEl.appendChild(questionsContainer);
+        
+        const solutionsDiv = document.createElement('div');
+        solutionsDiv.className = 'locked-answer p-4 rounded-lg';
+        solutionsDiv.setAttribute('data-answer-id', `lab-${groupIndex}`);
+        const challengesSolutions = document.createElement('div');
+        challengesSolutions.className = 'space-y-3';
+        taskGroup.challenges.forEach(challenge => {
+            let hintHTML = challenge.hint ? `<p class="text-sm text-gray-500 mb-1 italic"><strong>Hint:</strong> ${challenge.hint}</p>` : '';
+            challengesSolutions.innerHTML += `
+                <div>
+                    <p class="font-medium">${challenge.prompt}</p>
+                    ${hintHTML}
+                    <div class="code-block">${challenge.solution.replace(/</g, "&lt;")}</div>
+                </div>
+            `;
+        });
+        solutionsDiv.appendChild(challengesSolutions);
+        groupEl.appendChild(solutionsDiv);
+
+        const unlockDiv = document.createElement('div');
+        unlockDiv.className = 'mt-4 space-y-2 sm:space-y-0 sm:flex sm:space-x-2';
+        unlockDiv.setAttribute('data-unlock-id', `lab-${groupIndex}`);
+        unlockDiv.innerHTML = `
+            <input type="password" placeholder="Enter password for solutions" class="w-full sm:flex-grow p-2 border rounded-md">
+            <button class="w-full sm:w-auto bg-[var(--brand-blue)] hover:bg-[#0f4a81] text-white font-semibold px-4 py-2 rounded-md">Unlock</button>
+        `;
+        groupEl.appendChild(unlockDiv);
+        const errorEl = document.createElement('p');
+        errorEl.className = 'text-red-600 text-sm mt-1 h-4';
+        errorEl.setAttribute('data-error-id', `lab-${groupIndex}`);
+        groupEl.appendChild(errorEl);
+
+        labContainer.appendChild(groupEl);
+    });
+
+    const playgroundContainer = document.getElementById('playground-container');
+    
+    function renderPlayground() {
+        const challenge = playgroundData.challenges[currentPlaygroundChallenge];
+        playgroundContainer.innerHTML = `
+            <div>
+                <h4 class="font-semibold text-lg mb-2">Challenge #${currentPlaygroundChallenge + 1} of ${playgroundData.challenges.length}</h4>
+                <p class="mb-4 text-gray-700">${challenge.question}</p>
+            </div>
+            <div class="mt-6">
+                <textarea id="query-input" rows="4" class="w-full p-2 rounded-md" placeholder="GRANT ..."></textarea>
+                <div id="feedback" class="text-sm my-2 h-5 font-medium"></div>
+                <div class="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                    <button id="run-query" class="w-full text-white font-semibold px-4 py-2 rounded-md">Run DCL</button>
+                    <button id="reset-query" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold px-4 py-2 rounded-md">Reset</button>
+                    <button id="next-challenge" class="hidden lg:block w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md">Next Challenge &rarr;</button>
+                </div>
+                 <button id="next-challenge-mobile" class="hidden lg:hidden mt-2 w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-md">Next Challenge &rarr;</button>
+            </div>
+            <div class="mt-6">
+                <h5 class="font-semibold mb-2">Resulting Permissions</h5>
+                <div id="result-table">
+                </div>
+            </div>
+        `;
+        document.getElementById('result-table').innerHTML = renderPermissions();
+    }
+    
+    function renderPermissions() {
+        let html = '';
+        for (const user in playgroundData.users) {
+            html += `<div class="mb-2"><strong class="font-semibold">${user}:</strong> ${playgroundData.users[user].join(', ')}</div>`;
+        }
+        return html;
+    }
+
+    function runQuery() {
+        const query = document.getElementById('query-input').value;
+        const feedbackEl = document.getElementById('feedback');
+        const resultTable = document.getElementById('result-table');
+        const nextBtn = document.getElementById('next-challenge');
+        const nextBtnMobile = document.getElementById('next-challenge-mobile');
+        const challenge = playgroundData.challenges[currentPlaygroundChallenge];
+
+        if (challenge.validate(query)) {
+            feedbackEl.textContent = 'Correct! Permissions updated.';
+            feedbackEl.className = 'text-sm my-2 h-5 font-medium text-green-600';
+            nextBtn.classList.remove('hidden');
+            nextBtnMobile.classList.remove('hidden');
+            resultTable.innerHTML = "Permissions updated successfully (simulation).";
+        } else {
+            feedbackEl.textContent = 'Not quite right. Check your syntax!';
+            feedbackEl.className = 'text-sm my-2 h-5 font-medium text-red-600';
+            nextBtn.classList.add('hidden');
+            nextBtnMobile.classList.add('hidden');
+            resultTable.innerHTML = renderPermissions();
+        }
+    }
+
+    function resetQuery() {
+        document.getElementById('query-input').value = '';
+        const feedbackEl = document.getElementById('feedback');
+        feedbackEl.textContent = '';
+        feedbackEl.className = 'text-sm my-2 h-5 font-medium';
+        document.getElementById('result-table').innerHTML = renderPermissions();
+        document.getElementById('next-challenge').classList.add('hidden');
+        document.getElementById('next-challenge-mobile').classList.add('hidden');
+    }
+    
+    function handlePlaygroundClick(e) {
+        if (e.target.id === 'run-query') runQuery();
+        if (e.target.id === 'reset-query') resetQuery();
+        if (e.target.id === 'next-challenge' || e.target.id === 'next-challenge-mobile') {
+            currentPlaygroundChallenge = (currentPlaygroundChallenge + 1) % playgroundData.challenges.length;
+            renderPlayground();
+        }
+    }
+    
+    renderPlayground();
+    playgroundContainer.addEventListener('click', handlePlaygroundClick);
+
+    const activityContainer = document.getElementById('activity-container');
+    
+    function renderActivity() {
+        const activity = activityData[currentActivityIndex];
+        activityContainer.innerHTML = `
+            <div class="bg-brand-white p-6 rounded-lg shadow-lg">
+                <div class="flex justify-between items-center mb-4">
+                    <h4 class="font-semibold text-lg text-gray-800">${currentActivityIndex + 1}. ${activity.question}</h4>
+                    <span class="text-sm font-medium text-gray-500">${currentActivityIndex + 1} / ${activityData.length}</span>
+                </div>
+                <div class="mt-4 p-4 rounded-lg locked-answer" data-answer-id="${currentActivityIndex}">
+                    <div class="code-block">${activity.answer.replace(/</g, "&lt;")}</div>
+                </div>
+                <div class="mt-4 space-y-2 sm:space-y-0 sm:flex sm:space-x-2" data-unlock-id="${currentActivityIndex}">
+                    <input type="password" placeholder="Enter password to unlock" class="w-full sm:flex-grow p-2 border rounded-md">
+                    <button class="w-full sm:w-auto bg-[var(--brand-blue)] hover:bg-[#0f4a81] text-white font-semibold px-4 py-2 rounded-md">Unlock</button>
+                </div>
+                <p class="text-red-600 text-sm mt-1 h-4" data-error-id="${currentActivityIndex}"></p>
+            </div>
+            <div class="flex justify-between mt-4">
+                <button id="prev-activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">&larr; Previous</button>
+                <button id="next-activity" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded">Next &rarr;</button>
+            </div>
+        `;
+        document.getElementById('prev-activity').disabled = currentActivityIndex === 0;
+        document.getElementById('next-activity').disabled = currentActivityIndex === activityData.length - 1;
+    }
+
+    function handlePasswordUnlock(e, password) {
+        const wrapper = e.target.closest('[data-unlock-id]');
+        if (!wrapper || !e.target.matches('button')) return;
+        
+        const id = wrapper.dataset.unlockId;
+        const input = wrapper.querySelector('input');
+        const answerEl = document.querySelector(`[data-answer-id="${id}"]`);
+        const errorEl = document.querySelector(`[data-error-id="${id}"]`);
+
+        if (input.value === password) {
+            answerEl.classList.remove('locked-answer');
+            answerEl.classList.add('unlocked-answer');
+            errorEl.textContent = '';
+        } else {
+            errorEl.textContent = 'Wrong password.';
+            input.value = '';
+        }
+    }
+
+    function handlePasswordInput(e) {
+        if(e.target.tagName !== 'INPUT' || e.target.type !== 'password') return;
+        
+        const wrapper = e.target.closest('[data-unlock-id]');
+        const id = wrapper.dataset.unlockId;
+        const answerEl = document.querySelector(`[data-answer-id="${id}"]`);
+
+        if(e.target.value === '') {
+           answerEl.classList.add('locked-answer');
+           answerEl.classList.remove('unlocked-answer');
+        }
+    }
+
+    document.getElementById('lab-challenges').addEventListener('click', e => handlePasswordUnlock(e, labPassword));
+    document.getElementById('lab-challenges').addEventListener('input', handlePasswordInput);
+    
+    const activitySection = document.getElementById('activity-container');
+    activitySection.addEventListener('click', e => {
+        handlePasswordUnlock(e, activityPassword);
+        if (e.target.id === 'next-activity' && currentActivityIndex < activityData.length - 1) {
+            currentActivityIndex++;
+            renderActivity();
+        }
+        if (e.target.id === 'prev-activity' && currentActivityIndex > 0) {
+            currentActivityIndex--;
+            renderActivity();
+        }
+    });
+    activitySection.addEventListener('input', handlePasswordInput);
+    
+    renderActivity();
+    
+});
+</script>
+
+</body>
+</html>
