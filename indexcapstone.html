@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataNOW's SQL Capstone Project: Library Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-blue: #145da1;
+            --brand-red: #ee272a;
+            --brand-yellow: #fed966;
+            --brand-white: #ffffff;
+            --brand-dark: #2d3748;
+            --brand-light-gray: #f7fafc;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--brand-light-gray);
+            color: var(--brand-dark);
+        }
+        .active-nav {
+            color: var(--brand-yellow); 
+            font-weight: 600;
+            position: relative;
+        }
+        .active-nav::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: var(--brand-yellow);
+        }
+        .code-block {
+            background-color: #263238;
+            color: #eceff1;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', Courier, monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .fade-in-section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .locked-answer {
+            background-color: #e2e8f0;
+            border: 2px dashed #94a3b8;
+            color: transparent;
+            user-select: none;
+            filter: blur(4px);
+            transition: all 0.3s ease-in-out;
+        }
+        .unlocked-answer {
+            background-color: #f0fdf4;
+            border: 2px solid #22c55e;
+            filter: blur(0);
+            color: inherit;
+        }
+        .phase-card {
+            background-color: var(--brand-white);
+            border-left: 5px solid var(--brand-blue);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <nav id="navbar" class="bg-[var(--brand-blue)] sticky top-0 z-50 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center flex-shrink-0">
+                    <span class="text-2xl font-bold text-white">DataNOW, Inc.</span>
+                </div>
+                 <div class="hidden md:block">
+                    <div id="desktop-menu" class="ml-10 flex items-baseline space-x-4">
+                        <a href="#intro" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Introduction</a>
+                        <a href="#database-script" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Database Script</a>
+                        <a href="#overview" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Overview</a>
+                        <a href="#project-phases" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Project Phases</a>
+                        <a href="#submission" class="nav-link px-3 py-2 rounded-md text-sm font-medium text-gray-200 hover:text-white">Submission</a>
+                    </div>
+                </div>
+                <div class="-mr-2 flex md:hidden">
+                    <button id="mobile-menu-button" type="button" class="bg-gray-800 inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-white hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <span class="sr-only">Open main menu</span>
+                        <svg id="hamburger-icon" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        <svg id="close-icon" class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="md:hidden hidden">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#intro" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Introduction</a>
+                <a href="#database-script" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Database Script</a>
+                <a href="#overview" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Overview</a>
+                <a href="#project-phases" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Project Phases</a>
+                <a href="#submission" class="nav-link-mobile block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:text-white hover:bg-gray-700">Submission</a>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section id="intro" class="py-16 sm:py-20">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center fade-in-section">
+                <h1 class="text-4xl sm:text-5xl font-extrabold text-[var(--brand-dark)] tracking-tight">SQL Capstone Project: Library Management System</h1>
+                <p class="mt-4 max-w-3xl mx-auto text-lg text-gray-700">Welcome! This is a hands-on capstone project designed to test your knowledge of all major SQL commands. You will build a complete database from scratch. Each phase is a step in building a single, cohesive SQL script.</p>
+            </div>
+        </section>
+
+        <section id="database-script" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <h2 class="text-3xl font-bold text-center text-[var(--brand-dark)] tracking-tight">Downloadable Database Script</h2>
+                <p class="mt-4 text-center text-gray-700">This script contains the basic structure for your project. Download it, run it in SSMS, and then complete the tasks in each phase.</p>
+                <div class="mt-8 bg-white p-6 rounded-lg shadow-lg">
+                    <h3 class="font-semibold text-lg">LibraryDB_Template_Script.sql</h3>
+                    <div id="sql-script-content" class="code-block mt-4 max-h-96 overflow-y-auto">
+                        <!-- Script template will be shown here. -->
+                    </div>
+                    <div class="mt-6 text-center">
+                        <button id="download-script-btn" class="bg-[var(--brand-red)] hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg">Download SQL Template</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="overview" class="py-16 sm:py-20">
+            <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <h2 class="text-3xl font-bold text-center text-[var(--brand-dark)] tracking-tight">SQL Command Overview</h2>
+                <p class="mt-4 text-center text-gray-700">This project will utilize commands from all major SQL categories.</p>
+                <div class="mt-8 overflow-x-auto">
+                    <table class="min-w-full bg-white shadow-md rounded-lg">
+                        <thead class="bg-[var(--brand-blue)] text-white">
+                            <tr>
+                                <th class="py-3 px-4 uppercase font-semibold text-sm text-left">Type</th>
+                                <th class="py-3 px-4 uppercase font-semibold text-sm text-left">Full Form</th>
+                                <th class="py-3 px-4 uppercase font-semibold text-sm text-left">What it does</th>
+                                <th class="py-3 px-4 uppercase font-semibold text-sm text-left">Example Commands</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-700">
+                            <tr class="border-b"><td class="py-3 px-4 font-bold">DDL</td><td class="py-3 px-4">Data Definition Language</td><td class="py-3 px-4">Makes or changes the database structure</td><td class="py-3 px-4"><code>CREATE</code>, <code>ALTER</code>, <code>DROP</code></td></tr>
+                            <tr class="border-b bg-gray-50"><td class="py-3 px-4 font-bold">DML</td><td class="py-3 px-4">Data Manipulation Language</td><td class="py-3 px-4">Adds, changes, and deletes data</td><td class="py-3 px-4"><code>INSERT</code>, <code>UPDATE</code>, <code>DELETE</code></td></tr>
+                            <tr class="border-b"><td class="py-3 px-4 font-bold">DQL</td><td class="py-3 px-4">Data Query Language</td><td class="py-3 px-4">Asks questions to get data</td><td class="py-3 px-4"><code>SELECT</code></td></tr>
+                            <tr class="border-b bg-gray-50"><td class="py-3 px-4 font-bold">DCL</td><td class="py-3 px-4">Data Control Language</td><td class="py-3 px-4">Controls who can access data</td><td class="py-3 px-4"><code>GRANT</code>, <code>REVOKE</code></td></tr>
+                            <tr><td class="py-3 px-4 font-bold">TCL</td><td class="py-3 px-4">Transaction Control Language</td><td class="py-3 px-4">Manages changes as one group</td><td class="py-3 px-4"><code>COMMIT</code>, <code>ROLLBACK</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="project-phases" class="py-16 sm:py-20 bg-gray-100">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <h2 class="text-3xl font-bold text-center text-[var(--brand-dark)] tracking-tight">Project Phases</h2>
+                <div id="phases-container" class="mt-12 space-y-12">
+                    <!-- Phases will be dynamically inserted here -->
+                </div>
+            </div>
+        </section>
+
+        <section id="submission" class="py-16 sm:py-20">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 fade-in-section">
+                <h2 class="text-3xl font-bold text-center text-[var(--brand-dark)] tracking-tight">Capstone Submission Instructions</h2>
+                <div class="mt-8 text-left bg-white p-8 rounded-lg shadow-lg space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold text-[var(--brand-blue)]">1. Compile Your SQL Script</h3>
+                        <p class="mt-2 text-gray-700">Combine all your scripts from the phases above into a single SQL file. This final script should be runnable from start to finish, creating the database, tables, inserting data, and setting permissions.</p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-[var(--brand-blue)]">2. Document Your Work</h3>
+                        <p class="mt-2 text-gray-700">Take screenshots of the execution of your script in SSMS, showing the successful completion of the queries. Paste these screenshots into a Word document and save it with the file name: <strong>Capstone Project Output - Last Name, First Name.docx</strong></p>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-[var(--brand-blue)]">3. Email Your Submission</h3>
+                        <p class="mt-2 text-gray-700">Send an email to <a href="mailto:info@datanow.ph" class="text-blue-600 hover:underline">info@datanow.ph</a> with the following details:</p>
+                        <ul class="list-disc list-inside mt-2 space-y-1 text-gray-700">
+                            <li><strong>Subject:</strong> Capstone Project - MS SQL Batch 2 - Last Name, First Name</li>
+                            <li><strong>Attachments:</strong> Your final <code>.sql</code> script and your Word document.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-[var(--brand-blue)]">4. Share Your Experience</h3>
+                        <p class="mt-2 text-gray-700">Finally, visit our community Discord channel to share what you've learned and leave a message for the DataNOW team. Your feedback is valuable!</p>
+                        <a href="https://discordapp.com/channels/1262526912874680323/1262526915948843081" target="_blank" rel="noopener noreferrer" class="mt-3 inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Go to Discord Channel</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="bg-[var(--brand-dark)]">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-gray-300">
+            <p>DataNOW's Exclusive MS SQL Capstone Project | A Learning Resource</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    
+    const databaseTemplateScript = `
+-- Create Database
+-- Write the command to create a database named LibraryDB.
+-- Don't forget to add the command to use the new database.
+GO
+
+-------------------------------------------------
+-- Phase 1: DDL - Table Creation
+-------------------------------------------------
+-- Add your CREATE TABLE scripts here.
+-- Remember to add GO after each CREATE statement.
+
+
+-------------------------------------------------
+-- Phase 2: DML - Data Population
+-------------------------------------------------
+-- Add your INSERT scripts here.
+
+
+-------------------------------------------------
+-- Phase 3: DQL - Answering Questions
+-------------------------------------------------
+-- Note: Your DQL queries are for analysis and are not part of the final creation script.
+-- You can write them here for testing.
+
+
+-------------------------------------------------
+-- Phase 4: TCL - Managing Transactions
+-------------------------------------------------
+-- Add your transaction script here.
+
+
+-------------------------------------------------
+-- Phase 5: DCL - Securing the Database
+-------------------------------------------------
+-- Add your user/role creation and permission scripts here.
+
+
+`;
+
+    document.getElementById('sql-script-content').textContent = databaseTemplateScript.trim();
+    document.getElementById('download-script-btn').addEventListener('click', () => {
+        const blob = new Blob([databaseTemplateScript.trim()], { type: 'text/plain;charset=utf-8' });
+        saveAs(blob, 'LibraryDB_Template_Script.sql');
+    });
+
+
+const phases = [
+    { 
+        title: "Phase 1: Data Definition Language (DDL)", 
+        description: "Define the database structure by creating the necessary tables with the correct columns, data types, and constraints.",
+        password: "DDL_Complete",
+        tasks: [
+            {
+                instruction: "Create the `Authors` table. It must include: `AuthorID` (INT, PRIMARY KEY, auto-incrementing), `FirstName` (NVARCHAR(50), not null), `LastName` (NVARCHAR(50), not null), and `BirthYear` (INT).",
+                solution: `CREATE TABLE Authors (\n    AuthorID INT PRIMARY KEY IDENTITY(1,1),\n    FirstName NVARCHAR(50) NOT NULL,\n    LastName NVARCHAR(50) NOT NULL,\n    BirthYear INT\n);`
+            },
+            {
+                instruction: "Create the `Books` table. It needs: `BookID` (INT, PRIMARY KEY, auto-increment), `Title` (NVARCHAR(255), not null), `AuthorID` (INT, FOREIGN KEY referencing Authors), `ISBN` (NVARCHAR(20), must be unique), `PublishedYear` (INT), `Genre` (NVARCHAR(50)), and `AvailableCopies` (INT, not null, must be 0 or greater).",
+                solution: `CREATE TABLE Books (\n    BookID INT PRIMARY KEY IDENTITY(1,1),\n    Title NVARCHAR(255) NOT NULL,\n    AuthorID INT FOREIGN KEY REFERENCES Authors(AuthorID),\n    ISBN NVARCHAR(20) UNIQUE NOT NULL,\n    PublishedYear INT,\n    Genre NVARCHAR(50),\n    AvailableCopies INT NOT NULL CHECK(AvailableCopies >= 0)\n);`
+            },
+            {
+                instruction: "Create the `Members` table with: `MemberID` (INT, PRIMARY KEY, auto-increment), `FirstName` (NVARCHAR(50), not null), `LastName` (NVARCHAR(50), not null), `Email` (NVARCHAR(100), unique and not null), and `JoinDate` (DATE, not null, default to current date).",
+                solution: `CREATE TABLE Members (\n    MemberID INT PRIMARY KEY IDENTITY(1,1),\n    FirstName NVARCHAR(50) NOT NULL,\n    LastName NVARCHAR(50) NOT NULL,\n    Email NVARCHAR(100) UNIQUE NOT NULL,\n    JoinDate DATE NOT NULL DEFAULT GETDATE()\n);`
+            },
+             {
+                instruction: "Create the `Loans` table. Include: `LoanID` (INT, PRIMARY KEY, auto-increment), `BookID` (INT, FOREIGN KEY referencing Books), `MemberID` (INT, FOREIGN KEY referencing Members), `LoanDate` (DATE, not null), and `ReturnDate` (DATE, can be null).",
+                solution: `CREATE TABLE Loans (\n    LoanID INT PRIMARY KEY IDENTITY(1,1),\n    BookID INT FOREIGN KEY REFERENCES Books(BookID),\n    MemberID INT FOREIGN KEY REFERENCES Members(MemberID),\n    LoanDate DATE NOT NULL,\n    ReturnDate DATE\n);`
+            }
+        ]
+    },
+    { 
+        title: "Phase 2: Data Manipulation Language (DML)", 
+        description: "Populate your tables with initial data.",
+        password: "DML_Complete",
+        tasks: [
+            {
+                instruction: "Insert the following authors: George Orwell (b. 1903), J.K. Rowling (b. 1965), and J.R.R. Tolkien (b. 1892).",
+                solution: `INSERT INTO Authors (FirstName, LastName, BirthYear) VALUES\n('George', 'Orwell', 1903),\n('J.K.', 'Rowling', 1965),\n('J.R.R.', 'Tolkien', 1892);`
+            },
+            {
+                instruction: "Insert the books '1984' and 'Animal Farm' by George Orwell, and 'The Hobbit' by J.R.R. Tolkien. Provide plausible data for ISBN, year, genre, and copies.",
+                solution: `INSERT INTO Books (Title, AuthorID, ISBN, PublishedYear, Genre, AvailableCopies) VALUES\n('1984', 1, '978-0451524935', 1949, 'Dystopian', 5),\n('Animal Farm', 1, '978-0451526342', 1945, 'Political Satire', 6),\n('The Hobbit', 3, '978-0618260300', 1937, 'Fantasy', 7);`
+            },
+            {
+                instruction: "Enroll two members: John Smith (john.smith@email.com) and Emily Jones (emily.jones@email.com). Then, record that John Smith borrowed '1984' on July 1, 2023, and Emily Jones borrowed 'The Hobbit' on July 5, 2023.",
+                solution: `INSERT INTO Members (FirstName, LastName, Email) VALUES\n('John', 'Smith', 'john.smith@email.com'),\n('Emily', 'Jones', 'emily.jones@email.com');\n\nINSERT INTO Loans (BookID, MemberID, LoanDate) VALUES\n((SELECT BookID FROM Books WHERE Title = '1984'), (SELECT MemberID FROM Members WHERE Email = 'john.smith@email.com'), '2023-07-01'),\n((SELECT BookID FROM Books WHERE Title = 'The Hobbit'), (SELECT MemberID FROM Members WHERE Email = 'emily.jones@email.com'), '2023-07-05');`
+            }
+        ]
+    },
+    { 
+        title: "Phase 3: Data Query Language (DQL)", 
+        description: "Write queries to extract meaningful information from the database.",
+        password: "DQL_Complete",
+        tasks: [
+            {
+                instruction: "Find all books written by 'George Orwell'.",
+                solution: `SELECT b.Title, b.PublishedYear\nFROM Books b\nJOIN Authors a ON b.AuthorID = a.AuthorID\nWHERE a.FirstName = 'George' AND a.LastName = 'Orwell';`
+            },
+            {
+                instruction: "List all members who currently have a book on loan (their `ReturnDate` is NULL).",
+                solution: `SELECT m.FirstName, m.LastName, b.Title, l.LoanDate\nFROM Members m\nJOIN Loans l ON m.MemberID = l.MemberID\nJOIN Books b ON l.BookID = b.BookID\nWHERE l.ReturnDate IS NULL;`
+            },
+            {
+                instruction: "Count the number of books available for each genre.",
+                solution: `SELECT Genre, SUM(AvailableCopies) AS TotalAvailable\nFROM Books\nGROUP BY Genre\nHAVING SUM(AvailableCopies) > 0\nORDER BY TotalAvailable DESC;`
+            }
+        ]
+    },
+    {
+        title: "Phase 4: Transaction Control Language (TCL)",
+        description: "Ensure data integrity by managing multiple operations as a single, atomic transaction.",
+        password: "TCL_Complete",
+        tasks: [
+            {
+                instruction: "John Smith is returning '1984' and borrowing 'Animal Farm'. Write a single transaction to: 1. Update the loan record for '1984' to set the `ReturnDate` to today. 2. Increase `AvailableCopies` for '1984' by 1. 3. Decrease `AvailableCopies` for 'Animal Farm' by 1. 4. Insert a new loan record for 'Animal Farm'. If any step fails, none of the changes should be saved.",
+                solution: `BEGIN TRANSACTION;\n\nBEGIN TRY\n    -- 1. Update return date for the old loan\n    UPDATE Loans SET ReturnDate = GETDATE() \n    WHERE MemberID = (SELECT MemberID FROM Members WHERE Email = 'john.smith@email.com') \n    AND BookID = (SELECT BookID FROM Books WHERE Title = '1984') AND ReturnDate IS NULL;\n\n    -- 2. Increment copies for returned book\n    UPDATE Books SET AvailableCopies = AvailableCopies + 1 WHERE Title = '1984';\n\n    -- 3. Decrement copies for new book\n    UPDATE Books SET AvailableCopies = AvailableCopies - 1 WHERE Title = 'Animal Farm';\n\n    -- 4. Insert new loan record\n    INSERT INTO Loans (BookID, MemberID, LoanDate) VALUES \n    ((SELECT BookID FROM Books WHERE Title = 'Animal Farm'), (SELECT MemberID FROM Members WHERE Email = 'john.smith@email.com'), GETDATE());\n\n    COMMIT TRANSACTION;\nEND TRY\nBEGIN CATCH\n    ROLLBACK TRANSACTION;\n    PRINT 'Transaction failed and was rolled back.';\nEND CATCH;`
+            }
+        ]
+    },
+    { 
+        title: "Phase 5: Data Control Language (DCL)", 
+        description: "Secure the database by creating users and roles, and managing their permissions.",
+        password: "DCL_Complete",
+        tasks: [
+            {
+                instruction: "Create two database roles: `Librarian` and `Member`. Then, create a new SQL login named `AdminUser` with a secure password, and a corresponding database user for it.",
+                solution: `CREATE ROLE Librarian;\nCREATE ROLE Member;\n\nCREATE LOGIN AdminUser WITH PASSWORD = 'SuperSecret123!';\nCREATE USER AdminUser FOR LOGIN AdminUser;`
+            },
+            {
+                instruction: "Grant the `Librarian` role all permissions (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) on all four tables. Add the `AdminUser` to the `Librarian` role.",
+                solution: `GRANT SELECT, INSERT, UPDATE, DELETE ON Books TO Librarian;\nGRANT SELECT, INSERT, UPDATE, DELETE ON Authors TO Librarian;\nGRANT SELECT, INSERT, UPDATE, DELETE ON Members TO Librarian;\nGRANT SELECT, INSERT, UPDATE, DELETE ON Loans TO Librarian;\n\nALTER ROLE Librarian ADD MEMBER AdminUser;`
+            },
+            {
+                instruction: "Grant the `Member` role permission to only view (`SELECT`) the `Books` and `Authors` tables.",
+                solution: `GRANT SELECT ON Books TO Member;\nGRANT SELECT ON Authors TO Member;`
+            }
+        ]
+    }
+];
+
+
+const phasesContainer = document.getElementById('phases-container');
+phases.forEach((phase, index) => {
+    const phaseEl = document.createElement('div');
+    phaseEl.className = 'phase-card p-8 rounded-lg shadow-lg';
+    phaseEl.innerHTML = `
+        <h3 class="text-2xl font-bold text-[var(--brand-dark)]">Phase ${index + 1}: ${phase.title}</h3>
+        <p class="mt-2 text-gray-600">${phase.description}</p>
+        <div class="mt-6 space-y-8">
+            ${phase.tasks.map((task, taskIndex) => `
+                <div class="task" data-phase="${index}" data-task="${taskIndex}">
+                    <h4 class="font-semibold text-lg">Task ${taskIndex + 1}</h4>
+                    <p class="mt-1 text-gray-700">${task.instruction.replace(/</g, "&lt;")}</p>
+                    <textarea class="task-textarea w-full h-48 p-2 mt-2 border rounded-md font-mono" placeholder="-- Write your SQL script for this task here..."></textarea>
+                    <div class="mt-2">
+                        <div class="locked-answer p-4 rounded-lg" data-answer-id="phase-${index}-task-${taskIndex}">
+                            <div class="code-block">${task.solution.replace(/</g, "&lt;")}</div>
+                        </div>
+                        <div class="mt-2 flex items-center space-x-2" data-unlock-id="phase-${index}-task-${taskIndex}">
+                            <input type="password" placeholder="Password" class="p-2 border rounded-md">
+                            <button class="bg-[var(--brand-blue)] hover:bg-[#0f4a81] text-white font-semibold px-4 py-2 rounded-md">View Solution</button>
+                        </div>
+                        <p class="text-red-600 text-sm mt-1 h-4" data-error-id="phase-${index}-task-${taskIndex}"></p>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    phasesContainer.appendChild(phaseEl);
+});
+
+
+    // --- General Page Logic (Navigation, Animation, etc.) ---
+    const animationObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.fade-in-section').forEach(section => animationObserver.observe(section));
+
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => mobileMenu.classList.toggle('hidden'));
+    document.querySelectorAll('.nav-link-mobile').forEach(link => {
+        link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+    });
+
+    window.addEventListener('scroll', () => {
+        let current = '';
+        document.querySelectorAll('main section').forEach(section => {
+            if (pageYOffset >= section.offsetTop - 150) current = section.getAttribute('id');
+        });
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active-nav');
+            if (link.getAttribute('href') === `#${current}`) link.classList.add('active-nav');
+        });
+    });
+
+    function handlePasswordUnlock(e) {
+        const wrapper = e.target.closest('[data-unlock-id]');
+        if (!wrapper || !e.target.matches('button')) return;
+        
+        const id = wrapper.dataset.unlockId;
+        const phaseIndex = id.split('-')[1];
+        const correctPassword = phases[phaseIndex].password;
+        
+        const input = wrapper.querySelector('input');
+        const answerEl = document.querySelector(`[data-answer-id="${id}"]`);
+        const errorEl = document.querySelector(`[data-error-id="${id}"]`);
+
+        if (input.value === correctPassword) {
+            answerEl.classList.remove('locked-answer');
+            answerEl.classList.add('unlocked-answer');
+            errorEl.textContent = '';
+        } else {
+            errorEl.textContent = 'Wrong password.';
+            input.value = '';
+        }
+    }
+    phasesContainer.addEventListener('click', handlePasswordUnlock);
+});
+</script>
+
+</body>
+</html>
+
