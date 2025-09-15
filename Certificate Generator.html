@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Certificate Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .draggable {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            border: 2px dashed transparent;
+            padding: 2px;
+            border-radius: 4px;
+            transition: border-color 0.2s;
+            display: flex; /* Aligns text vertically */
+            align-items: center;
+        }
+        .draggable:hover {
+            border-color: rgba(37, 99, 235, 0.7); /* blue-600 */
+        }
+        .draggable.active {
+             border-color: rgba(37, 99, 235, 1); /* blue-600 */
+        }
+        .draggable .text-content {
+            width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: clip; /* We handle overflow via font-size adjustment */
+        }
+        .resize-handle {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            width: 12px;
+            height: 12px;
+            background-color: #2563eb;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: se-resize;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .draggable:hover .resize-handle, .draggable.active .resize-handle {
+            opacity: 1;
+        }
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            border-radius: 9999px;
+            color: white;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-10">
+            <h1 class="text-3xl md:text-4xl font-bold text-slate-900">Certificate Branding Tool</h1>
+            <p class="text-slate-500 mt-2">Generate professional, branded certificates in bulk.</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Controls Column -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200 space-y-6">
+                <!-- Step 1: Upload Template -->
+                <div>
+                    <h2 class="text-xl font-semibold mb-3 border-b border-slate-200 pb-3 flex items-center gap-3">
+                        <span class="bg-sky-500 text-white rounded-full h-8 w-8 text-sm flex items-center justify-center font-bold">1</span>
+                        Upload Template
+                    </h2>
+                    <p class="text-sm text-slate-500 mb-3">Use a high-resolution certificate background (.png, .jpg).</p>
+                    <input type="file" id="template-upload" accept="image/*" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 transition-colors cursor-pointer">
+                </div>
+
+                <!-- Step 2: Upload Student Data -->
+                <div>
+                     <h2 class="text-xl font-semibold mb-3 border-b border-slate-200 pb-3 flex items-center gap-3">
+                        <span class="bg-sky-500 text-white rounded-full h-8 w-8 text-sm flex items-center justify-center font-bold">2</span>
+                        Upload Data
+                    </h2>
+                    <p class="text-sm text-slate-500 mb-3">Upload a .csv with "Full Name", "Certificate No", and "Email" columns.</p>
+                    <input type="file" id="csv-upload" accept=".csv" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100 transition-colors cursor-pointer">
+                </div>
+                
+                <!-- Step 3: Customize & Export -->
+                <div id="controls-section" class="hidden">
+                     <h2 class="text-xl font-semibold mb-3 border-b border-slate-200 pb-3 flex items-center gap-3">
+                        <span class="bg-sky-500 text-white rounded-full h-8 w-8 text-sm flex items-center justify-center font-bold">3</span>
+                        Adjust & Export
+                    </h2>
+                    <p class="text-sm text-slate-500 mb-3">Drag to move and resize the text fields on the certificate preview. Use these controls for styling.</p>
+                    
+                    <div id="text-fields-controls" class="space-y-4"></div>
+                    
+                    <div class="mt-6 pt-4 border-t border-slate-200">
+                        <div id="navigation" class="flex items-center justify-between mb-4">
+                             <button id="prev-btn" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-md transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">&larr; Previous</button>
+                             <span id="record-indicator" class="text-sm text-slate-600 font-medium"></span>
+                             <button id="next-btn" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded-md transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">Next &rarr;</button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button id="preview-btn" class="w-full flex items-center justify-center gap-2 bg-slate-600 text-white py-2 px-4 rounded-lg hover:bg-slate-700 transition-colors font-semibold">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                                Preview
+                            </button>
+                            <button id="download-btn" class="w-full flex items-center justify-center gap-2 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                                Download
+                            </button>
+                            <button id="email-btn" class="col-span-2 w-full flex items-center justify-center gap-2 bg-orange-500 text-white py-2.5 px-4 rounded-lg hover:bg-orange-600 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                                Send Email
+                            </button>
+                            <button id="download-all-btn" class="col-span-2 w-full flex items-center justify-center gap-2 bg-sky-600 text-white py-2.5 px-4 rounded-lg hover:bg-sky-700 transition-colors font-semibold">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                                Download All as ZIP
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Canvas Column -->
+            <div class="lg:col-span-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-center min-h-[400px]">
+                <div id="canvas-container" class="transition-all duration-300 shadow-lg rounded-md overflow-hidden">
+                    <canvas id="certificate-canvas"></canvas>
+                    <div id="draggable-container"></div>
+                </div>
+                 <div id="placeholder" class="text-center text-slate-500">
+                    <p>Please upload a certificate template to begin.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast"></div>
+
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4 transition-opacity duration-300">
+        <div class="bg-white p-2 rounded-lg max-w-5xl w-full max-h-full overflow-auto relative shadow-2xl">
+            <img id="preview-image" src="" alt="Certificate Preview" class="max-w-full h-auto mx-auto">
+            <button id="close-preview-btn" class="absolute top-3 right-3 bg-white/80 backdrop-blur-sm rounded-full h-9 w-9 flex items-center justify-center text-slate-800 hover:bg-white transition-colors text-2xl font-bold">&times;</button>
+        </div>
+    </div>
+
+    <!-- Email Modal -->
+    <div id="email-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-2xl w-full max-w-2xl transform transition-all" id="email-modal-content">
+            <div class="p-6 border-b border-slate-200 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-slate-800">Compose Email</h2>
+                <button id="close-email-btn" class="text-slate-500 hover:text-slate-800 text-2xl">&times;</button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label for="email-to" class="text-sm font-medium text-slate-600 block mb-1">To</label>
+                    <input type="text" id="email-to" class="w-full p-2 border border-slate-300 rounded-md bg-slate-100" readonly>
+                </div>
+                 <div>
+                    <label for="email-cc" class="text-sm font-medium text-slate-600 block mb-1">CC</label>
+                    <input type="text" id="email-cc" class="w-full p-2 border border-slate-300 rounded-md" placeholder="carbon@copy.com">
+                </div>
+                 <div>
+                    <label for="email-bcc" class="text-sm font-medium text-slate-600 block mb-1">BCC</label>
+                    <input type="text" id="email-bcc" class="w-full p-2 border border-slate-300 rounded-md" placeholder="blindcarbon@copy.com">
+                </div>
+                <div>
+                    <label for="email-subject" class="text-sm font-medium text-slate-600 block mb-1">Subject</label>
+                    <input type="text" id="email-subject" class="w-full p-2 border border-slate-300 rounded-md">
+                </div>
+                <div>
+                    <label for="email-body" class="text-sm font-medium text-slate-600 block mb-1">Body</label>
+                    <textarea id="email-body" rows="8" class="w-full p-2 border border-slate-300 rounded-md"></textarea>
+                    <p class="text-xs text-slate-500 mt-1">Use <strong>[Full Name]</strong> and <strong>[Certificate No]</strong> as dynamic placeholders.</p>
+                </div>
+            </div>
+            <div class="p-6 bg-slate-50 border-t border-slate-200 rounded-b-lg flex justify-end items-center gap-3">
+                <p class="text-sm text-slate-500 mr-auto"><strong class="font-semibold">Note:</strong> This will open your default email app.</p>
+                <button id="send-email-action-btn" class="px-5 py-2.5 bg-sky-600 text-white font-semibold rounded-lg hover:bg-sky-700 transition-colors">Prepare Email</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // DOM Elements
+        const templateUpload = document.getElementById('template-upload');
+        const csvUpload = document.getElementById('csv-upload');
+        const canvas = document.getElementById('certificate-canvas');
+        const ctx = canvas.getContext('2d');
+        const textFieldsControls = document.getElementById('text-fields-controls');
+        const draggableContainer = document.getElementById('draggable-container');
+        const controlsSection = document.getElementById('controls-section');
+        const downloadBtn = document.getElementById('download-btn');
+        const downloadAllBtn = document.getElementById('download-all-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const recordIndicator = document.getElementById('record-indicator');
+        const canvasContainer = document.getElementById('canvas-container');
+        const placeholder = document.getElementById('placeholder');
+        const toast = document.getElementById('toast');
+        const previewBtn = document.getElementById('preview-btn');
+        const previewModal = document.getElementById('preview-modal');
+        const previewImage = document.getElementById('preview-image');
+        const closePreviewBtn = document.getElementById('close-preview-btn');
+        const emailBtn = document.getElementById('email-btn');
+        const emailModal = document.getElementById('email-modal');
+        const emailModalContent = document.getElementById('email-modal-content');
+        const closeEmailBtn = document.getElementById('close-email-btn');
+        const sendEmailActionBtn = document.getElementById('send-email-action-btn');
+
+        // State
+        let templateImage = null;
+        let csvData = [];
+        let textFields = [];
+        let currentIndex = 0;
+        let activeDraggable = null;
+        let dragOffsetX = 0, dragOffsetY = 0;
+        let isResizing = false;
+        let resizeStartWidth = 0, resizeStartX = 0;
+        let emailColumnKey = null;
+        
+        // --- Event Listeners ---
+        templateUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    templateImage = new Image();
+                    templateImage.onload = () => {
+                        const aspectRatio = templateImage.width / templateImage.height;
+                        canvas.width = templateImage.width;
+                        canvas.height = templateImage.height;
+                        canvasContainer.style.aspectRatio = aspectRatio;
+                        placeholder.style.display = 'none';
+                        canvasContainer.style.backgroundColor = 'transparent';
+                        renderCanvasBackground();
+                        if (csvData.length > 0) renderDraggables();
+                    };
+                    templateImage.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        csvUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                Papa.parse(file, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        if (!templateImage) {
+                            showToast("Please upload a certificate template first.", "bg-red-500");
+                            csvUpload.value = '';
+                            return;
+                        }
+
+                        const allHeaders = results.meta.fields;
+                        const nameFieldKey = allHeaders.find(h => h.toLowerCase().trim() === 'full name');
+                        emailColumnKey = allHeaders.find(h => h.toLowerCase().trim() === 'email');
+
+                        if (nameFieldKey) {
+                            results.data.forEach(row => {
+                                if (row[nameFieldKey]) {
+                                    row[nameFieldKey] = row[nameFieldKey]
+                                        .toLowerCase()
+                                        .split(' ')
+                                        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                        .join(' ');
+                                }
+                            });
+                        }
+                        csvData = results.data;
+                        
+                        const requiredTextFields = [
+                            { displayName: 'Full Name', match: 'full name' },
+                            { displayName: 'Certificate No', match: 'certificate no' }
+                        ];
+                        const foundTextFields = requiredTextFields.map(reqHeader => {
+                            const actualHeader = allHeaders.find(h => h.toLowerCase().trim() === reqHeader.match);
+                            return actualHeader ? { id: reqHeader.displayName, dataKey: actualHeader } : null;
+                        }).filter(Boolean);
+
+                        if (foundTextFields.length === 0) {
+                             showToast("CSV must contain at least 'Full Name' or 'Certificate No' column.", "bg-red-500");
+                             csvUpload.value = '';
+                             return;
+                        }
+
+                        initializeTextFields(foundTextFields);
+                        createControls();
+                        controlsSection.classList.remove('hidden');
+                        currentIndex = 0;
+                        updateNavigation();
+                        renderDraggables();
+                    }
+                });
+            }
+        });
+        
+        const changeRecord = (offset) => {
+            const newIndex = currentIndex + offset;
+            if (newIndex >= 0 && newIndex < csvData.length) {
+                currentIndex = newIndex;
+                updateNavigation();
+                renderDraggables();
+            }
+        };
+        prevBtn.addEventListener('click', () => changeRecord(-1));
+        nextBtn.addEventListener('click', () => changeRecord(1));
+        
+        downloadBtn.addEventListener('click', () => {
+            if (csvData.length > 0) {
+                const nameField = textFields.find(f => f.id === 'Full Name');
+                const nameKey = nameField ? nameField.dataKey : null;
+                const studentName = nameKey && csvData[currentIndex][nameKey] ? csvData[currentIndex][nameKey] : `certificate_${currentIndex + 1}`;
+                downloadCanvasAsImage(`${studentName.replace(/ /g, '_')}.png`);
+            }
+        });
+
+        downloadAllBtn.addEventListener('click', generateZip);
+        
+        previewBtn.addEventListener('click', showPreview);
+        closePreviewBtn.addEventListener('click', hidePreview);
+        previewModal.addEventListener('click', (e) => e.target === previewModal && hidePreview());
+        
+        // Email Listeners
+        emailBtn.addEventListener('click', openEmailModal);
+        closeEmailBtn.addEventListener('click', closeEmailModal);
+        emailModal.addEventListener('click', (e) => e.target === emailModal && closeEmailModal());
+        sendEmailActionBtn.addEventListener('click', handleSendEmail);
+
+        // --- Core Functions ---
+        
+        function saveSettings() {
+            const settings = {
+                textFields,
+                emailTemplate: {
+                    subject: document.getElementById('email-subject').value,
+                    body: document.getElementById('email-body').value,
+                }
+            };
+            localStorage.setItem('certificateGeneratorSettings', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('certificateGeneratorSettings');
+            return savedSettings ? JSON.parse(savedSettings) : { textFields: null, emailTemplate: null };
+        }
+
+        function initializeTextFields(headers) {
+            const { textFields: savedFields } = loadSettings();
+            textFields = headers.map((header, index) => {
+                const savedField = savedFields?.find(f => f.id === header.id);
+                return {
+                    id: header.id,
+                    dataKey: header.dataKey,
+                    x: savedField?.x ?? 50,
+                    y: savedField?.y ?? (50 + (index * 100)),
+                    font: savedField?.font ?? 'Inter',
+                    size: savedField?.size ?? 48,
+                    color: savedField?.color ?? '#000000',
+                    align: savedField?.align ?? 'left',
+                    width: savedField?.width ?? 1000,
+                };
+            });
+        }
+
+        function createControls() {
+            textFieldsControls.innerHTML = '';
+            draggableContainer.innerHTML = '';
+
+            textFields.forEach(field => {
+                const controlWrapper = document.createElement('div');
+                controlWrapper.className = 'p-4 border border-slate-200 rounded-lg bg-slate-50';
+                controlWrapper.innerHTML = `
+                    <label class="block font-semibold text-sm mb-3 text-slate-700">${field.id}</label>
+                    <div class="grid grid-cols-2 gap-3 text-sm">
+                        <div><label class="block text-xs font-medium text-slate-500 mb-1">Font Size</label><input type="number" data-id="${field.id}" data-prop="size" value="${field.size}" class="w-full p-1.5 border border-slate-300 rounded-md"></div>
+                        <div><label class="block text-xs font-medium text-slate-500 mb-1">Color</label><input type="color" data-id="${field.id}" data-prop="color" value="${field.color}" class="w-full p-1 border border-slate-300 rounded-md h-9"></div>
+                        <div class="col-span-2"><label class="block text-xs font-medium text-slate-500 mb-1">Font Family</label><input type="text" data-id="${field.id}" data-prop="font" value="${field.font}" class="w-full p-1.5 border border-slate-300 rounded-md"></div>
+                        <div class="col-span-2"><label class="block text-xs font-medium text-slate-500 mb-1">Width (px)</label><input type="number" data-id="${field.id}" data-prop="width" value="${field.width}" class="w-full p-1.5 border border-slate-300 rounded-md"></div>
+                        <div class="col-span-2"><label class="block text-xs font-medium text-slate-500 mb-1">Text Align</label><select data-id="${field.id}" data-prop="align" class="w-full p-1.5 border border-slate-300 rounded-md bg-white"><option value="left" ${field.align === 'left' ? 'selected' : ''}>Left</option><option value="center" ${field.align === 'center' ? 'selected' : ''}>Center</option><option value="right" ${field.align === 'right' ? 'selected' : ''}>Right</option></select></div>
+                    </div>`;
+                textFieldsControls.appendChild(controlWrapper);
+                
+                const draggable = document.createElement('div');
+                draggable.className = 'draggable';
+                draggable.id = `drag-${field.id}`;
+                draggable.innerHTML = `<div class="text-content"></div><div class="resize-handle"></div>`;
+                draggable.addEventListener('mousedown', startDrag);
+                draggable.querySelector('.resize-handle').addEventListener('mousedown', startResize);
+                draggableContainer.appendChild(draggable);
+            });
+            
+            textFieldsControls.addEventListener('input', (e) => {
+                const { id, prop } = e.target.dataset;
+                if(id) {
+                    const field = textFields.find(f => f.id === id);
+                    if (field) {
+                        field[prop] = e.target.value;
+                        renderDraggables();
+                        saveSettings();
+                    }
+                }
+            });
+        }
+        
+        function renderCanvasBackground() {
+             if (!templateImage) return;
+             ctx.clearRect(0, 0, canvas.width, canvas.height);
+             ctx.drawImage(templateImage, 0, 0, canvas.width, canvas.height);
+        }
+
+        function renderDraggables() {
+            if (csvData.length === 0 || !templateImage) return;
+            const currentRecord = csvData[currentIndex];
+            textFields.forEach(field => {
+                const draggable = document.getElementById(`drag-${field.id}`);
+                const textContentDiv = draggable.querySelector('.text-content');
+                
+                const text = currentRecord[field.dataKey] || '';
+                textContentDiv.textContent = text;
+                
+                const canvasRect = canvasContainer.getBoundingClientRect();
+                const scale = canvasRect.width / canvas.width;
+
+                draggable.style.left = `${field.x * scale}px`;
+                draggable.style.top = `${field.y * scale}px`;
+                draggable.style.width = `${field.width * scale}px`;
+
+                textContentDiv.style.fontFamily = field.font;
+                textContentDiv.style.color = field.color;
+                textContentDiv.style.textAlign = field.align;
+                
+                let fontSize = field.size * scale;
+                textContentDiv.style.fontSize = `${fontSize}px`;
+                while (textContentDiv.scrollWidth > draggable.clientWidth && fontSize > 8) {
+                    fontSize--;
+                    textContentDiv.style.fontSize = `${fontSize}px`;
+                }
+                 draggable.style.height = `${fontSize * 1.2}px`;
+            });
+        }
+
+        function drawTextForExport(recordIndex) {
+            const record = csvData[recordIndex];
+            textFields.forEach(field => {
+                const text = record[field.dataKey] || '';
+                
+                let fontSize = parseInt(field.size, 10);
+                const minFontSize = 8;
+                ctx.font = `${fontSize}px ${field.font}`;
+                ctx.fillStyle = field.color;
+                ctx.textAlign = field.align;
+                ctx.textBaseline = 'top';
+
+                let textWidth = ctx.measureText(text).width;
+                while (textWidth > field.width && fontSize > minFontSize) {
+                    fontSize--;
+                    ctx.font = `${fontSize}px ${field.font}`;
+                    textWidth = ctx.measureText(text).width;
+                }
+                
+                let currentX = field.x;
+                if (field.align === 'center') currentX = field.x + (field.width / 2);
+                else if (field.align === 'right') currentX = field.x + field.width;
+
+                ctx.fillText(text, currentX, field.y);
+            });
+        }
+        
+        function updateNavigation() {
+            recordIndicator.textContent = csvData.length > 0 ? `${currentIndex + 1} / ${csvData.length}`: '0 / 0';
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === csvData.length - 1;
+
+            const currentRecordHasEmail = emailColumnKey && csvData.length > 0 && csvData[currentIndex][emailColumnKey];
+            emailBtn.disabled = !currentRecordHasEmail;
+        }
+
+        function downloadCanvasAsImage(filename) {
+            renderCanvasBackground();
+            drawTextForExport(currentIndex);
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            renderCanvasBackground();
+        }
+        
+        async function generateZip() {
+            if (csvData.length === 0) return showToast("No data to export.", "bg-yellow-500 text-black");
+            
+            showToast("Generating ZIP... Please wait.", "bg-sky-500");
+            downloadAllBtn.disabled = true;
+            downloadAllBtn.innerHTML = "Generating...";
+
+            const zip = new JSZip();
+            const nameField = textFields.find(f => f.id === 'Full Name');
+            const nameKey = nameField ? nameField.dataKey : null;
+
+            try {
+                for (let i = 0; i < csvData.length; i++) {
+                    renderCanvasBackground();
+                    drawTextForExport(i);
+                    const dataUrl = canvas.toDataURL('image/png');
+                    const base64Data = dataUrl.substring(dataUrl.indexOf(',') + 1);
+                    const studentName = nameKey && csvData[i][nameKey] ? csvData[i][nameKey] : `certificate_${i + 1}`;
+                    zip.file(`${studentName.replace(/ /g, '_')}.png`, base64Data, { base64: true });
+                }
+
+                const content = await zip.generateAsync({ type: 'blob' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(content);
+                link.download = 'certificates.zip';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast("ZIP file generated successfully!", "bg-green-500");
+
+            } catch (error) {
+                console.error("Error generating ZIP file:", error);
+                showToast("Failed to generate ZIP file.", "bg-red-500");
+            } finally {
+                renderCanvasBackground();
+                downloadAllBtn.disabled = false;
+                downloadAllBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> Download All as ZIP`;
+            }
+        }
+        
+        function showToast(message, bgColor = 'bg-slate-800') {
+            toast.textContent = message;
+            toast.className = `toast ${bgColor} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function showPreview() {
+            if (!templateImage || csvData.length === 0) {
+                return showToast("Please upload template and data first.", "bg-yellow-500 text-black");
+            }
+            renderCanvasBackground();
+            drawTextForExport(currentIndex);
+            previewImage.src = canvas.toDataURL('image/png');
+            previewModal.classList.remove('hidden');
+            renderCanvasBackground();
+        }
+
+        function hidePreview() {
+            previewModal.classList.add('hidden');
+            previewImage.src = '';
+        }
+
+        function openEmailModal() {
+            const { emailTemplate } = loadSettings();
+            document.getElementById('email-subject').value = emailTemplate?.subject || "Congratulations on Your Certificate!";
+            document.getElementById('email-body').value = emailTemplate?.body || "Hi [Full Name],\n\nPlease find your certificate attached.\n\nBest regards,";
+            document.getElementById('email-to').value = csvData[currentIndex][emailColumnKey];
+            document.getElementById('email-cc').value = '';
+            document.getElementById('email-bcc').value = '';
+            emailModal.classList.remove('hidden');
+        }
+
+        function closeEmailModal() {
+            emailModal.classList.add('hidden');
+        }
+
+        function handleSendEmail() {
+            // 1. Save template
+            const emailTemplate = {
+                subject: document.getElementById('email-subject').value,
+                body: document.getElementById('email-body').value,
+            };
+            const settings = { textFields, emailTemplate };
+            localStorage.setItem('certificateGeneratorSettings', JSON.stringify(settings));
+
+            // 2. Download certificate
+            downloadCanvasAsImage(`${csvData[currentIndex][textFields.find(f=>f.id === 'Full Name')?.dataKey] || 'certificate'}.png`);
+            showToast("Certificate downloaded. Attach it to the email.", "bg-blue-500");
+
+            // 3. Prepare mailto link
+            const currentRecord = csvData[currentIndex];
+            const to = currentRecord[emailColumnKey];
+            const cc = document.getElementById('email-cc').value;
+            const bcc = document.getElementById('email-bcc').value;
+
+            let subject = emailTemplate.subject;
+            let body = emailTemplate.body;
+
+            // Replace placeholders
+            textFields.forEach(field => {
+                const placeholder = `[${field.id}]`;
+                const value = currentRecord[field.dataKey] || '';
+                subject = subject.replace(new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), value);
+                body = body.replace(new RegExp(placeholder.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'g'), value);
+            });
+            
+            let mailtoLink = `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            if (cc) mailtoLink += `&cc=${encodeURIComponent(cc)}`;
+            if (bcc) mailtoLink += `&bcc=${encodeURIComponent(bcc)}`;
+
+            // 4. Trigger email client
+            window.location.href = mailtoLink;
+            closeEmailModal();
+        }
+
+        // --- Drag and Resize Logic ---
+        function startDrag(e) {
+            if (e.target.classList.contains('resize-handle')) return;
+            e.preventDefault();
+            activeDraggable = e.currentTarget;
+            activeDraggable.classList.add('active');
+            dragOffsetX = e.clientX - activeDraggable.getBoundingClientRect().left;
+            dragOffsetY = e.clientY - activeDraggable.getBoundingClientRect().top;
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', endDrag);
+        }
+
+        function drag(e) {
+            if (!activeDraggable) return;
+            e.preventDefault();
+            const canvasRect = canvasContainer.getBoundingClientRect();
+            let x = e.clientX - canvasRect.left - dragOffsetX;
+            let y = e.clientY - canvasRect.top - dragOffsetY;
+            x = Math.max(0, Math.min(x, canvasRect.width - activeDraggable.offsetWidth));
+            y = Math.max(0, Math.min(y, canvasRect.height - activeDraggable.offsetHeight));
+            activeDraggable.style.left = `${x}px`;
+            activeDraggable.style.top = `${y}px`;
+        }
+
+        function endDrag() {
+            if (activeDraggable) {
+                const field = textFields.find(f => `drag-${f.id}` === activeDraggable.id);
+                if (field) {
+                    const canvasRect = canvasContainer.getBoundingClientRect();
+                    const scale = canvas.width / canvasRect.width;
+                    field.x = parseFloat(activeDraggable.style.left) * scale;
+                    field.y = parseFloat(activeDraggable.style.top) * scale;
+                    saveSettings();
+                }
+                activeDraggable.classList.remove('active');
+            }
+            activeDraggable = null;
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', endDrag);
+        }
+        
+        function startResize(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            isResizing = true;
+            activeDraggable = e.currentTarget.parentElement;
+            activeDraggable.classList.add('active');
+            resizeStartX = e.clientX;
+            resizeStartWidth = activeDraggable.offsetWidth;
+            document.addEventListener('mousemove', resize);
+            document.addEventListener('mouseup', endResize);
+        }
+
+        function resize(e) {
+            if (!isResizing || !activeDraggable) return;
+            const dx = e.clientX - resizeStartX;
+            const newWidthPx = Math.max(50, resizeStartWidth + dx);
+            activeDraggable.style.width = `${newWidthPx}px`;
+            
+            const field = textFields.find(f => `drag-${f.id}` === activeDraggable.id);
+            if (!field) return;
+
+            const textContentDiv = activeDraggable.querySelector('.text-content');
+            const canvasRect = canvasContainer.getBoundingClientRect();
+            const scale = canvasRect.width / canvas.width;
+            let fontSize = field.size * scale;
+            textContentDiv.style.fontSize = `${fontSize}px`;
+
+            while (textContentDiv.scrollWidth > activeDraggable.clientWidth && fontSize > 8) {
+                fontSize--;
+                textContentDiv.style.fontSize = `${fontSize}px`;
+            }
+            activeDraggable.style.height = `${fontSize * 1.2}px`;
+        }
+
+        function endResize() {
+            if (isResizing && activeDraggable) {
+                const field = textFields.find(f => `drag-${f.id}` === activeDraggable.id);
+                if (field) {
+                    const canvasRect = canvasContainer.getBoundingClientRect();
+                    const scale = canvas.width / canvasRect.width;
+                    field.width = parseFloat(activeDraggable.style.width) * scale;
+                    const widthInput = document.querySelector(`input[data-id="${field.id}"][data-prop="width"]`);
+                    if(widthInput) widthInput.value = Math.round(field.width);
+                    saveSettings();
+                }
+                activeDraggable.classList.remove('active');
+            }
+            isResizing = false;
+            activeDraggable = null;
+            document.removeEventListener('mousemove', resize);
+            document.removeEventListener('mouseup', endResize);
+        }
+
+        // Adjust draggables on window resize
+        window.addEventListener('resize', () => {
+             if (csvData.length > 0) renderDraggables();
+        });
+    </script>
+
+</body>
+</html>
+
