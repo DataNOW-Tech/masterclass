@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PUP - Interactive Learning Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" xintegrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoVBL5gI9kLmbG0CsdC3aJheDC_F3A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" xintegrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -46,6 +48,23 @@
             font-weight: 600;
             color: #ca8a04; /* Yellow 600 */
         }
+        /* For PDF Exporting */
+        #pdf-loader {
+            background-color: rgba(0,0,0,0.7);
+        }
+        .loader {
+            border-top-color: var(--pup-maroon);
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+        @-webkit-keyframes spinner {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -60,7 +79,8 @@
             </div>
             <button id="go-back-btn" class="hidden bg-white text-pup-maroon font-bold py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd" />
+                  <path fill-rule="evenodd" d="M10 18a8 8
+ 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd" />
                 </svg>
                 <span class="hidden sm:inline">Main Menu</span>
             </button>
@@ -104,7 +124,15 @@
             </div>
         </div>
     </div>
-
+    
+    <!-- PDF Loader Modal -->
+    <div id="pdf-loader" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-xl flex flex-col items-center">
+            <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24 mb-4"></div>
+            <h2 class="text-center text-pup-maroon text-xl font-semibold">Generating PDF...</h2>
+            <p class="text-center text-gray-600">Please wait, this may take a moment.</p>
+        </div>
+    </div>
 
     <!-- Main Content: Dashboard -->
     <div id="main-content" class="hidden max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
@@ -116,6 +144,9 @@
                     <nav id="sidebar-nav" class="space-y-2">
                         <!-- Nav items will be inserted by JS -->
                     </nav>
+                    <div id="sidebar-export-section" class="hidden pt-4 mt-4 border-t-2 border-gray-200">
+                        <!-- Export button will be inserted here -->
+                    </div>
                 </div>
             </aside>
 
@@ -259,7 +290,9 @@
         const mainContent = document.getElementById('main-content');
         const contentArea = document.getElementById('content-area');
         const sidebarNav = document.getElementById('sidebar-nav');
+        const sidebarExportSection = document.getElementById('sidebar-export-section');
         const courseSidebarTitle = document.getElementById('course-sidebar-title');
+        const pdfLoader = document.getElementById('pdf-loader');
 
         const adminPasswordModal = document.getElementById('admin-password-modal');
         const adminPasswordInput = document.getElementById('admin-password-input');
@@ -405,7 +438,8 @@
         function loadContent(contentId) {
             const courseContent = content[currentCourse.code];
             const contentData = courseContent[contentId];
-            
+            const exportSection = document.getElementById('sidebar-export-section');
+
             if (contentData.slides) {
                 let slidesHtml = contentData.slides.map((slide, index) => {
                     let slideContent = slide.content;
@@ -426,14 +460,89 @@
                     return `<div class="slide ${index === 0 ? 'active' : ''}" data-slide-index="${index}"><h2 class="text-2xl sm:text-3xl font-black text-pup-maroon mb-6">${slide.title}</h2>${slideContent}</div>`;
                 }).join('');
 
-                contentArea.innerHTML = `<div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg"><div id="slideshow-container" class="min-h-[450px]">${slidesHtml}</div><div class="flex justify-between items-center mt-8 pt-4 border-t"><button id="prev-slide" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-400 transition">&larr; Previous</button><div id="slide-indicator" class="text-gray-600 font-semibold text-sm sm:text-base"></div><button id="next-slide" class="bg-pup-maroon text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition">Next &rarr;</button></div></div>`;
+                contentArea.innerHTML = `<div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg"><div id="slideshow-container" class="min-h-[450px] overflow-x-auto">${slidesHtml}</div><div class="flex justify-between items-center mt-8 pt-4 border-t"><button id="prev-slide" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-400 transition">&larr; Previous</button><div id="slide-indicator" class="text-gray-600 font-semibold text-sm sm:text-base"></div><button id="next-slide" class="bg-pup-maroon text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition">Next &rarr;</button></div></div>`;
                 
                 setupSlideshow();
+                
+                exportSection.innerHTML = `<button id="export-pdf-btn" data-lecture-id="${contentId}" class="w-full bg-pup-maroon text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition flex items-center justify-center space-x-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" /></svg><span>Export to PDF</span></button>`;
+                document.getElementById('export-pdf-btn').addEventListener('click', (e) => exportLectureToPdf(e.currentTarget.dataset.lectureId));
+                exportSection.classList.remove('hidden');
 
             } else {
                 contentArea.innerHTML = contentData.html;
+                exportSection.classList.add('hidden');
+                exportSection.innerHTML = '';
             }
         }
+        
+        async function exportLectureToPdf(lectureId) {
+            pdfLoader.classList.remove('hidden');
+            const { jsPDF } = window.jspdf;
+            const lecture = content[currentCourse.code][lectureId];
+            if (!lecture || !lecture.slides) {
+                console.error("Lecture or slides not found!");
+                pdfLoader.classList.add('hidden');
+                return;
+            }
+
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'pt',
+                format: 'a4'
+            });
+            
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const originalActiveSlide = activeSlide; // Save the current slide index to restore it later
+
+            for (let i = 0; i < slides.length; i++) {
+                const slideElement = slides[i];
+                
+                // Temporarily make the slide active for rendering. The loader overlay hides this from the user.
+                slides.forEach(s => s.classList.remove('active'));
+                slideElement.classList.add('active');
+
+                // Give the browser a moment to render the slide before capturing
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                const canvas = await html2canvas(slideElement, { scale: 2 });
+                const imgData = canvas.toDataURL('image/png');
+                
+                // Safety check to prevent errors with blank canvases
+                if (canvas.width === 0 || canvas.height === 0) {
+                    console.error("Skipping slide " + i + " due to rendering issue (0-dimension canvas).");
+                    continue; // Skip this slide and move to the next
+                }
+                
+                const aspectRatio = canvas.width / canvas.height;
+                let imgWidth = pdfWidth - 40; // Page width with 20pt margin on each side
+                let imgHeight = imgWidth / aspectRatio;
+
+                // If the image is too tall for the page, resize based on height instead
+                if (imgHeight > pdfHeight - 40) {
+                    imgHeight = pdfHeight - 40; // Page height with 20pt margin
+                    imgWidth = imgHeight * aspectRatio;
+                }
+                
+                const x = (pdfWidth - imgWidth) / 2; // Center horizontally
+                const y = (pdfHeight - imgHeight) / 2; // Center vertically
+
+                if (i > 0) {
+                    pdf.addPage();
+                }
+                pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+            }
+            
+            // Restore the original UI state
+            slides.forEach(s => s.classList.remove('active'));
+            if (slides[originalActiveSlide]) {
+                slides[originalActiveSlide].classList.add('active');
+            }
+            
+            pdf.save(`${currentCourse.code}-${lectureId}.pdf`);
+            pdfLoader.classList.add('hidden');
+        }
+
 
         function setupSlideshow() {
             const slideshowContainer = document.getElementById('slideshow-container');
