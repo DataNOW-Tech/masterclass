@@ -142,7 +142,7 @@
                 <div class="bg-white rounded-lg shadow p-4 sticky top-24 md:top-28">
                     <h3 id="course-sidebar-title" class="text-xl font-bold text-pup-maroon mb-4 border-b-2 border-gray-200 pb-2">COMP 001</h3>
                     <nav id="sidebar-nav" class="space-y-2">
-                        <!-- Nav items will be inserted by JS -->
+                        <!-- Nav items will be inserted here by JS -->
                     </nav>
                     <div id="sidebar-export-section" class="hidden pt-4 mt-4 border-t-2 border-gray-200">
                         <!-- Export button will be inserted here -->
@@ -266,7 +266,7 @@
                         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
                             <h2 class="text-2xl sm:text-3xl font-black text-pup-maroon mb-6 border-b-4 border-pup-maroon pb-3">References & Further Reading</h2>
                             <ul class="list-disc list-inside space-y-3 text-gray-700">
-                                <li>Floyd, Thomas L. (2015). <em>Digital Fundamentals: A Systems Approach.</em> Pearson Education Limited.</li>
+                                <li>Floyd, Thomas L. (205). <em>Digital Fundamentals: A Systems Approach.</em> Pearson Education Limited.</li>
                                 <li>Matthes, Eric. (2019). <em>Python Crash Course: A Hands-On, Project-based Introduction to Programming.</em></li>
                                 <li>GCFGlobal. (n.d.). <em>Computer Basics.</em> Retrieved from https://edu.gcfglobal.org/en/computerbasics/</li>
                                 <li>TutorialsPoint. (n.d.). <em>Computer Fundamentals Tutorial.</em> Retrieved from https://www.tutorialspoint.com/computer_fundamentals/index.htm</li>
@@ -479,6 +479,7 @@
             pdfLoader.classList.remove('hidden');
             const { jsPDF } = window.jspdf;
             const lecture = content[currentCourse.code][lectureId];
+
             if (!lecture || !lecture.slides) {
                 console.error("Lecture or slides not found!");
                 pdfLoader.classList.add('hidden');
@@ -493,47 +494,60 @@
             
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
-            const originalActiveSlide = activeSlide; // Save the current slide index to restore it later
+            const margin = 72; // 1 inch = 72 points
+            const originalActiveSlide = activeSlide; 
 
             for (let i = 0; i < slides.length; i++) {
-                const slideElement = slides[i];
-                
-                // Temporarily make the slide active for rendering. The loader overlay hides this from the user.
-                slides.forEach(s => s.classList.remove('active'));
-                slideElement.classList.add('active');
-
-                // Give the browser a moment to render the slide before capturing
-                await new Promise(resolve => setTimeout(resolve, 50));
-
-                const canvas = await html2canvas(slideElement, { scale: 2 });
-                const imgData = canvas.toDataURL('image/png');
-                
-                // Safety check to prevent errors with blank canvases
-                if (canvas.width === 0 || canvas.height === 0) {
-                    console.error("Skipping slide " + i + " due to rendering issue (0-dimension canvas).");
-                    continue; // Skip this slide and move to the next
-                }
-                
-                const aspectRatio = canvas.width / canvas.height;
-                let imgWidth = pdfWidth - 40; // Page width with 20pt margin on each side
-                let imgHeight = imgWidth / aspectRatio;
-
-                // If the image is too tall for the page, resize based on height instead
-                if (imgHeight > pdfHeight - 40) {
-                    imgHeight = pdfHeight - 40; // Page height with 20pt margin
-                    imgWidth = imgHeight * aspectRatio;
-                }
-                
-                const x = (pdfWidth - imgWidth) / 2; // Center horizontally
-                const y = (pdfHeight - imgHeight) / 2; // Center vertically
-
                 if (i > 0) {
                     pdf.addPage();
                 }
-                pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+
+                // Programmatically draw header
+                pdf.setFillColor('#7b2124'); // PUP Maroon
+                pdf.rect(0, 0, pdfWidth, 60, 'F');
+                pdf.setFont('Inter', 'bold');
+                pdf.setFontSize(22);
+                pdf.setTextColor('#FFFFFF');
+                pdf.text('Polytechnic University of the Philippines', pdfWidth / 2, 30, { align: 'center' });
+                pdf.setFont('Inter', 'normal');
+                pdf.setFontSize(12);
+                pdf.setTextColor('#DDDDDD');
+                pdf.text('Interactive Learning Portal by Jason Penalosa', pdfWidth / 2, 48, { align: 'center' });
+                
+                const slideElement = slides[i];
+                
+                slides.forEach(s => s.classList.remove('active'));
+                slideElement.classList.add('active');
+
+                await new Promise(resolve => setTimeout(resolve, 50));
+
+                const canvas = await html2canvas(slideElement, { scale: 2 });
+                const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                
+                if (canvas.width === 0 || canvas.height === 0) {
+                    console.error("Skipping slide " + i + " due to rendering issue.");
+                    continue;
+                }
+                
+                const contentMarginTop = 60 + 20; // Header height + padding
+                const availableWidth = pdfWidth - (margin * 2);
+                const availableHeight = pdfHeight - contentMarginTop - margin;
+                
+                const aspectRatio = canvas.width / canvas.height;
+                let imgWidth = availableWidth;
+                let imgHeight = imgWidth / aspectRatio;
+
+                if (imgHeight > availableHeight) {
+                    imgHeight = availableHeight;
+                    imgWidth = imgHeight * aspectRatio;
+                }
+                
+                const x = (pdfWidth - imgWidth) / 2;
+                const y = contentMarginTop + (availableHeight - imgHeight) / 2;
+
+                pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
             }
             
-            // Restore the original UI state
             slides.forEach(s => s.classList.remove('active'));
             if (slides[originalActiveSlide]) {
                 slides[originalActiveSlide].classList.add('active');
