@@ -4,29 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PUP - Interactive Learning Portal</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" xintegrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoVBL5gI9kLmbG0CsdC3aJheDC_F3A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" xintegrity="sha512-qZvrmS2ekKPF2mSznTQsxqPgnpkI4DNTlrdUmTzrDgektczlKNRRhy5X5AAOnx5S09ydFYWWNSfcEqDTTHgtNA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Google Fonts for typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://css.gg/css?family=Inter:400,500,600,700,900" rel="stylesheet">
     <style>
+        /* Base styling and font definition */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f4f4f5; /* Zinc 100 */
         }
-        /* PUP Brand Colors */
+        /* PUP Brand Colors defined as CSS variables */
         :root {
             --pup-maroon: #7b2124;
             --pup-gold: #ffd700;
         }
+        /* Utility classes for PUP brand colors */
         .bg-pup-maroon { background-color: var(--pup-maroon); }
         .text-pup-maroon { color: var(--pup-maroon); }
         .border-pup-maroon { border-color: var(--pup-maroon); }
         .bg-pup-gold { background-color: var(--pup-gold); }
         .text-pup-gold { color: var(--pup-gold); }
         
-        /* Slide transition */
+        /* CSS for slide transitions in the slideshow */
         .slide {
             display: none;
             opacity: 0;
@@ -36,10 +38,12 @@
             display: block;
             opacity: 1;
         }
+        /* Styling for tip boxes */
         .student-tip {
             background-color: #eff6ff; /* Blue 50 */
             border-left: 4px solid #3b82f6; /* Blue 500 */
         }
+        /* Styling for hidden answer spans in exercises */
         .answer-span {
             display: none;
             background-color: #fefce8; /* Yellow 50 */
@@ -48,61 +52,43 @@
             font-weight: 600;
             color: #ca8a04; /* Yellow 600 */
         }
-        /* For PDF Exporting */
-        #pdf-loader {
-            background-color: rgba(0,0,0,0.7);
-        }
-        .loader {
-            border-top-color: var(--pup-maroon);
-            -webkit-animation: spinner 1.5s linear infinite;
-            animation: spinner 1.5s linear infinite;
-        }
-        @-webkit-keyframes spinner {
-            0% { -webkit-transform: rotate(0deg); }
-            100% { -webkit-transform: rotate(360deg); }
-        }
-        @keyframes spinner {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body class="antialiased">
-    <!-- Header -->
+    <!-- Header Section -->
     <header class="bg-pup-maroon shadow-md sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 flex items-center justify-between">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
             <div class="flex items-center space-x-4">
                 <div>
-                    <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-white tracking-wider">Polytechnic University of the Philippines</h1>
-                    <p class="text-sm sm:text-md md:text-base text-gray-200">Interactive Learning Portal by Jason Penalosa</p>
+                    <h1 class="text-2xl md:text-3xl font-bold text-white tracking-wider">Polytechnic University of the Philippines</h1>
+                    <p class="text-md md:text-base text-gray-200">Interactive Learning Portal by Jason Penalosa</p>
                 </div>
             </div>
-            <button id="go-back-btn" class="hidden bg-white text-pup-maroon font-bold py-2 px-3 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2">
+            <button id="go-back-btn" class="hidden bg-white text-pup-maroon font-bold py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors flex items-center space-x-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fill-rule="evenodd" d="M10 18a8 8
- 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd" />
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd" />
                 </svg>
-                <span class="hidden sm:inline">Main Menu</span>
+                <span>Main Menu</span>
             </button>
         </div>
     </header>
 
-    <!-- Landing Page: Course Selection -->
+    <!-- Landing Page: Course Selection Grid -->
     <main id="landing-page" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         <div class="text-center mb-10">
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-pup-maroon">Welcome, Iskolar ng Bayan!</h2>
-            <p class="mt-2 text-md sm:text-lg text-gray-600">Please select your program and section to begin.</p>
+            <h2 class="text-3xl font-extrabold text-pup-maroon">Welcome, Iskolar ng Bayan!</h2>
+            <p class="mt-2 text-lg text-gray-600">Please select your program and section to begin.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Course Cards will be inserted here by JS -->
+            <!-- Course Cards will be dynamically inserted here by JavaScript -->
         </div>
     </main>
 
-    <!-- Password Modal -->
+    <!-- Password Modal for Course Access -->
     <div id="password-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-md transform transition-all" id="password-modal-content">
-            <h3 class="text-xl sm:text-2xl font-bold text-pup-maroon text-center mb-2">Access Required</h3>
+        <div class="bg-white rounded-lg shadow-2xl p-8 w-full max-w-md transform transition-all" id="password-modal-content">
+            <h3 class="text-2xl font-bold text-pup-maroon text-center mb-2">Access Required</h3>
             <p class="text-center text-gray-600 mb-6">Enter the passcode for <strong id="selected-course-title" class="text-gray-800"></strong>.</p>
             <input type="password" id="password-input" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-pup-maroon focus:border-pup-maroon transition" placeholder="Enter passcode...">
             <p id="password-error" class="text-red-600 text-sm mt-2 hidden">Invalid passcode. Please try again.</p>
@@ -111,10 +97,10 @@
         </div>
     </div>
     
-    <!-- Admin Password Modal for Answers -->
+    <!-- Admin Password Modal for Revealing Answers -->
     <div id="admin-password-modal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-lg shadow-2xl p-6 sm:p-8 w-full max-w-sm transform transition-all">
-            <h3 class="text-lg sm:text-xl font-bold text-pup-maroon text-center mb-4">Admin Access Required</h3>
+        <div class="bg-white rounded-lg shadow-2xl p-8 w-full max-w-sm transform transition-all">
+            <h3 class="text-xl font-bold text-pup-maroon text-center mb-4">Admin Access Required</h3>
             <p class="text-center text-gray-600 mb-6 text-sm">Enter the admin password to reveal the answer.</p>
             <input type="password" id="admin-password-input" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-pup-maroon focus:border-pup-maroon transition" placeholder="Admin passcode...">
             <p id="admin-password-error" class="text-red-600 text-xs mt-2 hidden">Invalid admin passcode.</p>
@@ -124,33 +110,22 @@
             </div>
         </div>
     </div>
-    
-    <!-- PDF Loader Modal -->
-    <div id="pdf-loader" class="hidden fixed inset-0 z-50 flex items-center justify-center">
-        <div class="bg-white p-8 rounded-lg shadow-xl flex flex-col items-center">
-            <div class="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-24 w-24 mb-4"></div>
-            <h2 class="text-center text-pup-maroon text-xl font-semibold">Generating PDF...</h2>
-            <p class="text-center text-gray-600">Please wait, this may take a moment.</p>
-        </div>
-    </div>
 
-    <!-- Main Content: Dashboard -->
+
+    <!-- Main Content Area: Dashboard with Sidebar and Content -->
     <div id="main-content" class="hidden max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-        <div class="flex flex-col md:flex-row gap-6 md:gap-8">
+        <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar Navigation -->
             <aside class="w-full md:w-1/4 lg:w-1/5">
-                <div class="bg-white rounded-lg shadow p-4 sticky top-24 md:top-28">
-                    <h3 id="course-sidebar-title" class="text-xl font-bold text-pup-maroon mb-4 border-b-2 border-gray-200 pb-2">COMP 001</h3>
+                <div class="bg-white rounded-lg shadow p-4 sticky top-28">
+                    <h3 id="course-sidebar-title" class="text-xl font-bold text-pup-maroon mb-4 border-b-2 border-gray-200 pb-2"></h3>
                     <nav id="sidebar-nav" class="space-y-2">
-                        <!-- Nav items will be inserted here by JS -->
+                        <!-- Navigation items will be inserted by JavaScript -->
                     </nav>
-                    <div id="sidebar-export-section" class="hidden pt-4 mt-4 border-t-2 border-gray-200">
-                        <!-- Export button will be inserted here -->
-                    </div>
                 </div>
             </aside>
 
-            <!-- Content Area -->
+            <!-- Content Display Area -->
             <section id="content-area" class="w-full md:w-3/4 lg:w-4/5">
                 <!-- Content will be dynamically loaded here -->
             </section>
@@ -160,8 +135,10 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- DATA ---
-        const ADMIN_PASSWORD = 'PUPADMIN24';
+        // --- DATA STORE ---
+        // This section holds all the data for courses, passwords, and lesson content.
+        
+        const ADMIN_PASSWORD = 'PUPADMIN24'; // Master password
         const courses = {
             'DIT 1-1 / COMP001': { title: 'Introduction to Computing', code: 'COMP001', password: 'DIT11COMP1' },
             'DIT 1-1 / COMP002': { title: 'Computer Programming 1', code: 'COMP002', password: 'DIT11COMP2' },
@@ -170,50 +147,45 @@
             'IT 2-1 / COMP006': { title: 'Data Structures and Algorithms', code: 'COMP006', password: 'IT21COMP6' },
         };
         
-        let activeSlide = 0;
-        let slides = [];
-        let currentCourse = null;
-        let questionToReveal = null;
-
         const content = {
             'COMP001': {
                 'grading-system': {
                     title: 'Grading System',
                     html: `
-                        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg animate-fade-in">
-                            <h2 class="text-2xl sm:text-3xl font-black text-pup-maroon mb-6 border-b-4 border-pup-maroon pb-3">Course Grading System</h2>
-                            <p class="text-gray-700 mb-8 text-md sm:text-lg">Your final grade is a reflection of your consistent effort throughout the semester. It's calculated based on your performance in class activities and major examinations.</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-10">
-                                <div class="bg-gray-50 p-6 rounded-lg border-l-4 border-pup-maroon"><h3 class="text-xl sm:text-2xl font-bold text-gray-800">Class Standing</h3><p class="text-4xl sm:text-5xl font-extrabold text-pup-maroon mt-2">70%</p><ul class="mt-4 text-gray-600 list-disc list-inside space-y-2"><li>Quizzes & Exercises</li><li>Assignments</li><li>Recitation / Participation</li><li>Portfolio / Projects</li></ul></div>
-                                <div class="bg-gray-50 p-6 rounded-lg border-l-4 border-pup-gold"><h3 class="text-xl sm:text-2xl font-bold text-gray-800">Major Examinations</h3><p class="text-4xl sm:text-5xl font-extrabold text-pup-maroon mt-2">30%</p><ul class="mt-4 text-gray-600 list-disc list-inside space-y-2"><li>Midterm Examination</li><li>Final Examination</li></ul></div>
+                        <div class="bg-white p-8 rounded-xl shadow-lg animate-fade-in">
+                            <h2 class="text-3xl font-black text-pup-maroon mb-6 border-b-4 border-pup-maroon pb-3">Course Grading System</h2>
+                            <p class="text-gray-700 mb-8 text-lg">Your final grade is a reflection of your consistent effort throughout the semester. It's calculated based on your performance in class activities and major examinations.</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                                <div class="bg-gray-50 p-6 rounded-lg border-l-4 border-pup-maroon"><h3 class="text-2xl font-bold text-gray-800">Class Standing</h3><p class="text-5xl font-extrabold text-pup-maroon mt-2">70%</p><ul class="mt-4 text-gray-600 list-disc list-inside space-y-2"><li>Quizzes & Exercises</li><li>Assignments</li><li>Recitation / Participation</li><li>Portfolio / Projects</li></ul></div>
+                                <div class="bg-gray-50 p-6 rounded-lg border-l-4 border-pup-gold"><h3 class="text-2xl font-bold text-gray-800">Major Examinations</h3><p class="text-5xl font-extrabold text-pup-maroon mt-2">30%</p><ul class="mt-4 text-gray-600 list-disc list-inside space-y-2"><li>Midterm Examination</li><li>Final Examination</li></ul></div>
                             </div>
-                            <div class="mb-10"><h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Final Grade Calculation</h3><div class="bg-pup-maroon text-white p-4 rounded-lg text-center font-mono text-md sm:text-lg shadow-inner">(Midterm Grade + Final Term Grade) / 2 = Final Grade</div></div>
-                            <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-4">Grade Equivalents</h3>
+                            <div class="mb-10"><h3 class="text-2xl font-bold text-gray-800 mb-4">Final Grade Calculation</h3><div class="bg-pup-maroon text-white p-4 rounded-lg text-center font-mono text-lg shadow-inner">(Midterm Grade + Final Term Grade) / 2 = Final Grade</div></div>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-4">Grade Equivalents</h3>
                             <div class="overflow-x-auto"><table class="min-w-full bg-white border border-gray-200 rounded-lg shadow"><thead class="bg-pup-maroon text-white"><tr><th class="text-left py-3 px-4 uppercase font-semibold text-sm">Grade/Mark</th><th class="text-left py-3 px-4 uppercase font-semibold text-sm">Percentage / Equivalence</th><th class="text-left py-3 px-4 uppercase font-semibold text-sm">Description</th></tr></thead><tbody class="text-gray-700"><tr class="border-b"><td class="py-3 px-4">1.0</td><td class="py-3 px-4">97-100</td><td class="py-3 px-4 font-semibold text-green-700">Excellent</td></tr><tr class="bg-gray-50 border-b"><td class="py-3 px-4">1.25</td><td class="py-3 px-4">94-96</td><td class="py-3 px-4 font-semibold text-green-700">Excellent</td></tr><tr class="border-b"><td class="py-3 px-4">1.50</td><td class="py-3 px-4">91-93</td><td class="py-3 px-4 font-semibold text-blue-700">Very Good</td></tr><tr class="bg-gray-50 border-b"><td class="py-3 px-4">1.75</td><td class="py-3 px-4">88-90</td><td class="py-3 px-4 font-semibold text-blue-700">Very Good</td></tr><tr class="border-b"><td class="py-3 px-4">2.0</td><td class="py-3 px-4">85-87</td><td class="py-3 px-4 font-semibold text-cyan-700">Good</td></tr><tr class="bg-gray-50 border-b"><td class="py-3 px-4">2.25</td><td class="py-3 px-4">82-84</td><td class="py-3 px-4 font-semibold text-cyan-700">Good</td></tr><tr class="border-b"><td class="py-3 px-4">2.50</td><td class="py-3 px-4">79-81</td><td class="py-3 px-4">Satisfactory</td></tr><tr class="bg-gray-50 border-b"><td class="py-3 px-4">2.75</td><td class="py-3 px-4">76-78</td><td class="py-3 px-4">Satisfactory</td></tr><tr class="border-b"><td class="py-3 px-4">3.0</td><td class="py-3 px-4">75</td><td class="py-3 px-4 font-semibold text-orange-600">Passing</td></tr><tr class="bg-red-50"><td class="py-3 px-4 font-bold text-red-700">5.0</td><td class="py-3 px-4 font-bold text-red-700">Below 75</td><td class="py-3 px-4 font-bold text-red-700">Failure</td></tr></tbody></table></div>
                         </div>`
                 },
                 'course-outline': {
                     title: 'Course Outline',
                     html: `
-                        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
-                            <h2 class="text-2xl sm:text-3xl font-black text-pup-maroon mb-6 border-b-4 border-pup-maroon pb-3">Weekly Course Outline</h2>
+                        <div class="bg-white p-8 rounded-xl shadow-lg">
+                            <h2 class="text-3xl font-black text-pup-maroon mb-6 border-b-4 border-pup-maroon pb-3">Weekly Course Outline</h2>
                             <div class="space-y-4">
-                                ${[ { week: '1-2', topic: 'The Grand Tour: Introduction to Computers and Computing', details: 'Defining computers, a whirlwind tour of computing history, and meeting the different types of computers.' }, { week: '3', topic: 'Anatomy of a PC: Computer Hardware', details: 'Exploring the essential components: CPU, Motherboard, RAM, Storage, and I/O devices.' }, { week: '4', topic: 'The Ghost in the Machine: Computer Software', details: 'Differentiating between system and application software, with hands-on installation.' }, { week: '5', topic: 'The Conductor: Operating Systems', details: 'Understanding the role of an OS, comparing Windows, macOS, and Linux, and learning basic commands.' } ].map(item => `<div class="p-4 border rounded-lg hover:shadow-md transition bg-gray-50"><div class="flex items-start sm:items-center flex-col sm:flex-row"><span class="bg-pup-maroon text-white text-sm font-bold px-3 py-1 rounded-full mr-4 mb-2 sm:mb-0">Week ${item.week}</span><h3 class="text-lg font-bold text-gray-800">${item.topic}</h3></div><p class="text-gray-600 mt-2 pl-4 border-l-2 border-gray-200">${item.details}</p></div>`).join('')}
+                                ${[ { week: '1-2', topic: 'The Grand Tour: Introduction to Computers and Computing', details: 'Defining computers, a whirlwind tour of computing history, and meeting the different types of computers.' }, { week: '3', topic: 'Anatomy of a PC: Computer Hardware', details: 'Exploring the essential components: CPU, Motherboard, RAM, Storage, and I/O devices.' }, { week: '4', topic: 'The Ghost in the Machine: Computer Software', details: 'Differentiating between system and application software, with hands-on installation.' }, { week: '5', topic: 'The Conductor: Operating Systems', details: 'Understanding the role of an OS, comparing Windows, macOS, and Linux, and learning basic commands.' } ].map(item => `<div class="p-4 border rounded-lg hover:shadow-md transition bg-gray-50"><div class="flex items-center"><span class="bg-pup-maroon text-white text-sm font-bold px-3 py-1 rounded-full mr-4">Week ${item.week}</span><h3 class="text-lg font-bold text-gray-800">${item.topic}</h3></div><p class="text-gray-600 mt-2 pl-4 border-l-2 border-gray-200">${item.details}</p></div>`).join('')}
                             </div>
                         </div>`
                 },
                 'week-1': {
                     title: 'Week 1: Intro to Computing',
                     slides: [
-                        { title: "Welcome to the Digital Universe!", content: `<h3 class="text-3xl sm:text-4xl font-black text-pup-maroon">Let's Begin Our Journey!</h3><p class="mt-4 text-lg sm:text-xl text-gray-700">Think about your day so far. Did you use a phone? Watch TV? Travel in a car? If so, you've already interacted with several computers. This course is about understanding these incredible machines, from the giant supercomputers to the tiny chips in your microwave.</p><p class="mt-4 text-md sm:text-lg text-gray-700">Our goal isn't just to learn facts, but to understand the 'why' and 'how' behind the technology that powers our modern world.</p><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Student Tip:</p><p class="text-blue-700">Stay curious! The best way to learn about technology is to ask questions. If you wonder "how does that work?", you're on the right track!</p></div>`},
-                        { title: "What is a Computer?", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">At its heart, a computer is a machine that follows instructions. We can give it some data (<strong>Input</strong>), it will think about it (<strong>Process</strong>), show us the result (<strong>Output</strong>), and maybe save it for later (<strong>Storage</strong>).</p><p class="text-md sm:text-lg text-gray-700 mb-6">Let's tell a story using this <strong>IPOS Cycle</strong>. Imagine you're writing an essay:</p><ul class="space-y-3 text-md sm:text-base"><li><strong class="text-blue-600">INPUT:</strong> You type letters on your keyboard. That's the input.</li><li><strong class="text-green-600">PROCESS:</strong> The computer's processor arranges these letters into words and sentences. It checks for spelling errors. That's the processing.</li><li><strong class="text-purple-600">OUTPUT:</strong> The words appear on your monitor. That's the output.</li><li><strong class="text-yellow-600">STORAGE:</strong> You click 'Save'. The computer writes your essay file to the hard drive. That's storage.</li></ul>`},
-                        { title: "Hardware vs. Software", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">Every computer system has two fundamental parts. A simple way to think about it is:</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center"><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Hardware</h4><p class="mt-2 text-gray-600">The physical parts of the computer you can touch. The keyboard, mouse, monitor, and the circuits inside the case.</p><p class="mt-4 font-semibold text-lg">It's the Body.</p></div><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Software</h4><p class="mt-2 text-gray-600">The set of instructions (programs) that tells the hardware what to do. Your operating system (Windows, macOS), web browser, and games.</p><p class="mt-4 font-semibold text-lg">It's the Mind.</p></div></div><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Key Concept:</p><p class="text-blue-700">Hardware is useless without software to run it, and software can't do anything without hardware to run on. They need each other to function.</p></div>`},
-                        { title: "The Language of Computers", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">How do computers, which are just circuits and electricity, understand things like letters, photos, and videos? The secret is a simple language called <strong class="text-pup-maroon">Binary Code</strong>.</p><p class="text-md sm:text-lg text-gray-700">Computers only understand two states: <strong>ON</strong> or <strong>OFF</strong>. We represent these states with numbers: <strong>1 (ON)</strong> and <strong>0 (OFF)</strong>. Each 1 or 0 is called a 'bit'.</p><p class="text-md sm:text-lg text-gray-700 mt-4">By combining these bits in long strings, computers can represent everything! For example:</p><div class="font-mono text-center bg-gray-800 text-white p-4 rounded-lg mt-4 text-sm sm:text-base">The letter 'A' might be <span class="text-green-400">01000001</span><br>The number '5' might be <span class="text-green-400">00000101</span></div>`},
-                        { title: "A Brief History of Computing", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">The idea of a 'computer' is older than electricity! Let's trace the story.</p><ul class="list-disc list-inside space-y-2 text-gray-800 text-sm sm:text-base"><li><strong>Ancient Times:</strong> The Abacus was an early form of a calculating tool.</li><li><strong>1800s:</strong> Charles Babbage designed the Analytical Engine, a mechanical computer. Ada Lovelace wrote the first algorithm for it, making her the first programmer!</li><li><strong>1940s:</strong> The first electronic computers were built, like ENIAC. They were massive, filled entire rooms, and used vacuum tubes.</li><li><strong>1950s-60s:</strong> The invention of the transistor made computers smaller, faster, and more reliable.</li><li><strong>1970s:</strong> The microprocessor put an entire computer brain on a single chip, leading to the first personal computers (PCs).</li><li><strong>1980s-90s:</strong> Companies like Apple and Microsoft brought computers into our homes, and the World Wide Web was born.</li><li><strong>2000s-Today:</strong> The rise of smartphones, cloud computing, and AI puts powerful computing in the palm of our hands.</li></ul>`},
-                        { title: "Generations of Computers", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">We often group computers into 'generations' based on their core technology. Each generation brought a massive leap in power and a huge reduction in size.</p><div class="space-y-3 text-md sm:text-base"><p><strong>1st Gen (Vacuum Tubes):</strong> Massive, hot, and unreliable.</p><p><strong>2nd Gen (Transistors):</strong> Smaller, cooler, and more dependable.</p><p><strong>3rd Gen (Integrated Circuits):</strong> Many transistors on one chip. Cheaper and more powerful.</p><p><strong>4th Gen (Microprocessors):</strong> A whole CPU on one chip. The age of the PC begins!</p><p><strong>5th Gen (AI & Parallel Processing):</strong> What we have today and are developing for the future, focusing on artificial intelligence and connecting many processors.</p></div>`},
-                        { title: "The Computer Family Tree", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">Computers are not one-size-fits-all. They come in many forms, each designed for a specific job.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Supercomputers:</h4><p class="text-sm text-gray-600">The fastest computers on Earth, used for weather forecasting and scientific research.</p></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Mainframes:</h4><p class="text-sm text-gray-600">Handle huge amounts of transactions for banks and airlines.</p></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Servers:</h4><p class="text-sm text-gray-600">The backbone of the internet, hosting websites and managing data.</p></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Personal Computers (PCs):</h4><p class="text-sm text-gray-600">Desktops and laptops for our daily work and play.</p></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Mobile Devices:</h4><p class="text-sm text-gray-600">Smartphones and tablets that have become our primary computing devices.</p></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Embedded Systems:</h4><p class="text-sm text-gray-600">Hidden computers in cars, TVs, and appliances that perform one specific task.</p></div></div>`},
-                        { title: "A Day in Your Life with Computers", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">Let's trace the hidden computers in a typical student's day.</p><p class="text-md sm:text-lg text-gray-700">You wake up to an alarm on your <strong class="text-pup-maroon">smartphone</strong> (1). You check social media. You go to the kitchen, and the <strong class="text-pup-maroon">microwave</strong> (2) heats your breakfast. You ride a jeep or bus, paying with a card read by a <strong class="text-pup-maroon">payment terminal</strong> (3). The traffic lights are controlled by a <strong class="text-pup-maroon">computer system</strong> (4). At school, you use a <strong class="text-pup-maroon">PC</strong> (5) in the library. After school, you watch a show on a <strong class="text-pup-maroon">Smart TV</strong> (6).</p><p class="mt-4 text-md sm:text-lg">Computers are everywhere, making our lives easier, safer, and more connected. They are the invisible engines of our society.</p>`},
-                        { title: "Let's Review: Week 1", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">Let's recap the big ideas from this week!</p><ul class="list-decimal list-inside space-y-3 text-md sm:text-lg text-gray-800"><li>A computer works on the <strong class="text-pup-maroon">IPOS</strong> (Input, Process, Output, Storage) cycle.</li><li>A computer system is made of <strong class="text-pup-maroon">Hardware</strong> (the body) and <strong class="text-pup-maroon">Software</strong> (the mind).</li><li>Computers speak <strong class="text-pup-maroon">Binary</strong>, a language of 1s (ON) and 0s (OFF).</li><li>Computer history progressed through five generations, getting smaller and more powerful each time.</li><li>There are many types of computers, from giant <strong class="text-pup-maroon">Supercomputers</strong> to tiny <strong class="text-pup-maroon">Embedded Systems</strong>.</li></ul>`},
+                        { title: "Welcome to the Digital Universe!", content: `<h3 class="text-4xl font-black text-pup-maroon">Let's Begin Our Journey!</h3><p class="mt-4 text-xl text-gray-700">Think about your day so far. Did you use a phone? Watch TV? Travel in a car? If so, you've already interacted with several computers. This course is about understanding these incredible machines, from the giant supercomputers to the tiny chips in your microwave.</p><p class="mt-4 text-lg text-gray-700">Our goal isn't just to learn facts, but to understand the 'why' and 'how' behind the technology that powers our modern world.</p><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Student Tip:</p><p class="text-blue-700">Stay curious! The best way to learn about technology is to ask questions. If you wonder "how does that work?", you're on the right track!</p></div>`},
+                        { title: "What is a Computer?", content: `<p class="text-xl text-gray-700 mb-6">At its heart, a computer is a machine that follows instructions. We can give it some data (<strong>Input</strong>), it will think about it (<strong>Process</strong>), show us the result (<strong>Output</strong>), and maybe save it for later (<strong>Storage</strong>).</p><p class="text-lg text-gray-700 mb-6">Let's tell a story using this <strong>IPOS Cycle</strong>. Imagine you're writing an essay:</p><ul class="space-y-3"><li><strong class="text-blue-600">INPUT:</strong> You type letters on your keyboard. That's the input.</li><li><strong class="text-green-600">PROCESS:</strong> The computer's processor arranges these letters into words and sentences. It checks for spelling errors. That's the processing.</li><li><strong class="text-purple-600">OUTPUT:</strong> The words appear on your monitor. That's the output.</li><li><strong class="text-yellow-600">STORAGE:</strong> You click 'Save'. The computer writes your essay file to the hard drive. That's storage.</li></ul>`},
+                        { title: "Hardware vs. Software", content: `<p class="text-xl text-gray-700 mb-6">Every computer system has two fundamental parts. A simple way to think about it is:</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center"><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Hardware</h4><p class="mt-2 text-gray-600">The physical parts of the computer you can touch. The keyboard, mouse, monitor, and the circuits inside the case.</p><p class="mt-4 font-semibold text-lg">It's the Body.</p></div><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Software</h4><p class="mt-2 text-gray-600">The set of instructions (programs) that tells the hardware what to do. Your operating system (Windows, macOS), web browser, and games.</p><p class="mt-4 font-semibold text-lg">It's the Mind.</p></div></div><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Key Concept:</p><p class="text-blue-700">Hardware is useless without software to run it, and software can't do anything without hardware to run on. They need each other to function.</p></div>`},
+                        { title: "The Language of Computers", content: `<p class="text-xl text-gray-700 mb-6">How do computers, which are just circuits and electricity, understand things like letters, photos, and videos? The secret is a simple language called <strong class="text-pup-maroon">Binary Code</strong>.</p><p class="text-lg text-gray-700">Computers only understand two states: <strong>ON</strong> or <strong>OFF</strong>. We represent these states with numbers: <strong>1 (ON)</strong> and <strong>0 (OFF)</strong>. Each 1 or 0 is called a 'bit'.</p><p class="text-lg text-gray-700 mt-4">By combining these bits in long strings, computers can represent everything! For example:</p><div class="font-mono text-center bg-gray-800 text-white p-4 rounded-lg mt-4">The letter 'A' might be <span class="text-green-400">01000001</span><br>The number '5' might be <span class="text-green-400">00000101</span></div>`},
+                        { title: "A Brief History of Computing", content: `<p class="text-xl text-gray-700 mb-6">The idea of a 'computer' is older than electricity! Let's trace the story.</p><ul class="list-disc list-inside space-y-2 text-gray-800"><li><strong>Ancient Times:</strong> The Abacus was an early form of a calculating tool.</li><li><strong>1800s:</strong> Charles Babbage designed the Analytical Engine, a mechanical computer. Ada Lovelace wrote the first algorithm for it, making her the first programmer!</li><li><strong>1940s:</strong> The first electronic computers were built, like ENIAC. They were massive, filled entire rooms, and used vacuum tubes.</li><li><strong>1950s-60s:</strong> The invention of the transistor made computers smaller, faster, and more reliable.</li><li><strong>1970s:</strong> The microprocessor put an entire computer brain on a single chip, leading to the first personal computers (PCs).</li><li><strong>1980s-90s:</strong> Companies like Apple and Microsoft brought computers into our homes, and the World Wide Web was born.</li><li><strong>2000s-Today:</strong> The rise of smartphones, cloud computing, and AI puts powerful computing in the palm of our hands.</li></ul>`},
+                        { title: "Generations of Computers", content: `<p class="text-xl text-gray-700 mb-6">We often group computers into 'generations' based on their core technology. Each generation brought a massive leap in power and a huge reduction in size.</p><div class="space-y-3"><p><strong>1st Gen (Vacuum Tubes):</strong> Massive, hot, and unreliable.</p><p><strong>2nd Gen (Transistors):</strong> Smaller, cooler, and more dependable.</p><p><strong>3rd Gen (Integrated Circuits):</strong> Many transistors on one chip. Cheaper and more powerful.</p><p><strong>4th Gen (Microprocessors):</strong> A whole CPU on one chip. The age of the PC begins!</p><p><strong>5th Gen (AI & Parallel Processing):</strong> What we have today and are developing for the future, focusing on artificial intelligence and connecting many processors.</p></div>`},
+                        { title: "The Computer Family Tree", content: `<p class="text-xl text-gray-700 mb-6">Computers are not one-size-fits-all. They come in many forms, each designed for a specific job.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Supercomputers:</h4><p class="text-sm text-gray-600">The fastest computers on Earth, used for weather forecasting and scientific research.</p></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Mainframes:</h4><p class="text-sm text-gray-600">Handle huge amounts of transactions for banks and airlines.</p></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Servers:</h4><p class="text-sm text-gray-600">The backbone of the internet, hosting websites and managing data.</p></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Personal Computers (PCs):</h4><p class="text-sm text-gray-600">Desktops and laptops for our daily work and play.</p></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Mobile Devices:</h4><p class="text-sm text-gray-600">Smartphones and tablets that have become our primary computing devices.</p></div><div class="bg-gray-50 p-4 rounded-lg"><h4 class="font-bold text-pup-maroon">Embedded Systems:</h4><p class="text-sm text-gray-600">Hidden computers in cars, TVs, and appliances that perform one specific task.</p></div></div>`},
+                        { title: "A Day in Your Life with Computers", content: `<p class="text-xl text-gray-700 mb-6">Let's trace the hidden computers in a typical student's day.</p><p class="text-lg text-gray-700">You wake up to an alarm on your <strong class="text-pup-maroon">smartphone</strong> (1). You check social media. You go to the kitchen, and the <strong class="text-pup-maroon">microwave</strong> (2) heats your breakfast. You ride a jeep or bus, paying with a card read by a <strong class="text-pup-maroon">payment terminal</strong> (3). The traffic lights are controlled by a <strong class="text-pup-maroon">computer system</strong> (4). At school, you use a <strong class="text-pup-maroon">PC</strong> (5) in the library. After school, you watch a show on a <strong class="text-pup-maroon">Smart TV</strong> (6).</p><p class="mt-4 text-lg">Computers are everywhere, making our lives easier, safer, and more connected. They are the invisible engines of our society.</p>`},
+                        { title: "Let's Review: Week 1", content: `<p class="text-xl text-gray-700 mb-6">Let's recap the big ideas from this week!</p><ul class="list-decimal list-inside space-y-3 text-lg text-gray-800"><li>A computer works on the <strong class="text-pup-maroon">IPOS</strong> (Input, Process, Output, Storage) cycle.</li><li>A computer system is made of <strong class="text-pup-maroon">Hardware</strong> (the body) and <strong class="text-pup-maroon">Software</strong> (the mind).</li><li>Computers speak <strong class="text-pup-maroon">Binary</strong>, a language of 1s (ON) and 0s (OFF).</li><li>Computer history progressed through five generations, getting smaller and more powerful each time.</li><li>There are many types of computers, from giant <strong class="text-pup-maroon">Supercomputers</strong> to tiny <strong class="text-pup-maroon">Embedded Systems</strong>.</li></ul>`},
                         { 
                             title: "Week 1 Exercises", 
                             exercises: [
@@ -234,15 +206,15 @@
                 'week-2': {
                     title: 'Week 2: Computer Hardware',
                     slides: [
-                        { title: "Anatomy of a Digital Beast", content: `<h3 class="text-3xl sm:text-4xl font-black text-pup-maroon">Let's Open the Box!</h3><p class="mt-4 text-lg sm:text-xl text-gray-700">Last week, we learned what a computer IS. This week, we're taking one apart (figuratively!) to see what's inside. We are exploring the world of <strong class="text-pup-maroon">Hardware</strong> – the collection of physical components that work together to bring your computer to life.</p><p class="mt-4 text-md sm:text-lg text-gray-700">Think of it like being a mechanic, but instead of an engine, we're looking at a motherboard.</p>` },
-                        { title: "The Motherboard: The PC's Main Hub", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">Everything connects to the <strong class="text-pup-maroon">Motherboard</strong>. It's the foundation of the computer, a large circuit board that lets all the other parts communicate. It's like the map of a city, with roads connecting all the important buildings.</p><p class="text-md sm:text-lg font-semibold text-gray-800">Key parts of a motherboard:</p><ul class="list-disc list-inside space-y-2 mt-2 text-gray-700 text-sm sm:text-base"><li><strong>CPU Socket:</strong> Where the 'brain' is installed.</li><li><strong>RAM Slots:</strong> Where the short-term memory sticks are inserted.</li><li><strong>PCIe Slots:</strong> For expansion cards like graphics cards.</li><li><strong>SATA Ports:</strong> To connect storage drives like SSDs and HDDs.</li><li><strong>I/O Panel:</strong> The ports on the back of your PC (USB, HDMI, etc.).</li></ul>` },
-                        { title: "The CPU: The Brains of the Operation", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">The <strong class="text-pup-maroon">Central Processing Unit (CPU)</strong> is a small chip that is the engine of your computer. It executes billions of instructions per second to run your programs.</p><p class="text-md sm:text-lg text-gray-700">Imagine a chef in a kitchen. The recipe is the program, and the chef (CPU) reads each instruction and performs the action (chops vegetables, stirs the pot). The faster the chef, the quicker the meal is ready.</p><div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-gray-50 p-4 rounded-lg"><strong>Clock Speed (GHz):</strong> How many cycles (instructions) it can run per second. Higher is generally better.</div><div class="bg-gray-50 p-4 rounded-lg"><strong>Cores:</strong> The number of independent processors on the chip. More cores means it can multitask better (like having multiple chefs).</div></div>` },
-                        { title: "RAM: The High-Speed Workspace", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6"><strong class="text-pup-maroon">Random Access Memory (RAM)</strong> is your computer's short-term memory. It's where the computer temporarily stores the data for the applications you are currently running.</p><p class="text-md sm:text-lg text-gray-700">Think of it as your desk. When you work on a project, you take your books and papers (data) out of your cabinet (storage) and put them on your desk (RAM) to access them quickly. When you're done, you put them back. If the power goes out, your desk is cleared!</p><div class="mt-6 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Key Concept:</p><p class="text-blue-700">RAM is <strong class="font-semibold">volatile</strong>, meaning it needs power to hold data. More RAM allows you to run more applications smoothly at the same time.</p></div>` },
-                        { title: "Storage: Long-Term Memory", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">This is where your files, operating system, and programs are kept permanently. Unlike RAM, storage is <strong class="text-pup-maroon">non-volatile</strong> – it keeps your data even when the power is off.</p><p class="text-md sm:text-lg font-semibold text-gray-800">The two main types are:</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4"><div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-xl">HDD (Hard Disk Drive)</h4><p class="text-sm mt-2">Uses a spinning platter and a mechanical arm to read/write data. Think of a record player. It's slower, but offers more storage for less money.</p></div><div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-xl">SSD (Solid-State Drive)</h4><p class="text-sm mt-2">Uses flash memory chips with no moving parts. It's like a very large, very fast USB drive. Your computer boots up and opens programs much faster with an SSD.</p></div></div>` },
-                        { title: "The GPU: Powering Your Pixels", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">The <strong class="text-pup-maroon">Graphics Processing Unit (GPU)</strong>, or graphics card, is a specialized processor designed to handle everything you see on your screen. While a CPU has a few powerful cores, a GPU has thousands of simpler cores that work together.</p><p class="text-md sm:text-lg text-gray-700">It's the difference between a master artist (CPU) painting one masterpiece, and an army of painters (GPU) each painting one pixel at the same time. This is why GPUs are essential for:</p><ul class="list-disc list-inside space-y-2 mt-4 text-gray-800"><li>Video Games</li><li>Video Editing and Animation</li><li>Scientific Simulations and AI</li></ul>` },
-                        { title: "Peripherals & Ports", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">Peripherals are the devices we connect to the outside of the computer case. They plug into <strong class="text-pup-maroon">Ports</strong>, which are the connection points on the motherboard's I/O panel.</p><p class="text-md sm:text-lg font-semibold text-gray-800">Common Ports:</p><ul class="list-disc list-inside space-y-2 mt-2 text-gray-700 text-sm sm:text-base"><li><strong>USB (Universal Serial Bus):</strong> The most common port for connecting mice, keyboards, printers, phones, and flash drives. (Types: USB-A, USB-C)</li><li><strong>HDMI/DisplayPort:</strong> Used to connect your monitor or a TV.</li><li><strong>Ethernet Port:</strong> For a wired internet connection.</li><li><strong>Audio Jacks:</strong> For connecting speakers, headphones, and microphones.</li></ul>` },
-                        { title: "Keeping It Cool", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">Computer components, especially the CPU and GPU, generate a lot of heat when they work hard. If they get too hot, they slow down or can even be damaged. That's why every PC needs a cooling system.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4"><div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-xl">Fans</h4><p class="text-sm mt-2">Case fans pull cool air in and push hot air out. The CPU and GPU have their own dedicated fans.</p></div><div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-xl">Heatsinks</h4><p class="text-sm mt-2">A block of metal with many fins that sits on top of the CPU. It absorbs the heat, and the fins provide a large surface area for the fan to blow the heat away.</p></div></div>` },
-                        { title: "Let's Review: Week 2", content: `<p class="text-lg sm:text-xl text-gray-700 mb-6">Let's recap the key hardware components!</p><ul class="list-decimal list-inside space-y-3 text-md sm:text-lg text-gray-800"><li>The <strong class="text-pup-maroon">Motherboard</strong> is the central hub connecting all parts.</li><li>The <strong class="text-pup-maroon">CPU</strong> is the brain that executes instructions.</li><li><strong class="text-pup-maroon">RAM</strong> is the fast, temporary workspace (volatile memory).</li><li><strong class="text-pup-maroon">Storage (SSD/HDD)</strong> is the slow, permanent home for your files (non-volatile).</li><li>The <strong class="text-pup-maroon">GPU</strong> is a special processor for handling graphics and visuals.</li><li><strong class="text-pup-maroon">Ports</strong> like USB and HDMI allow us to connect external devices.</li></ul>` },
+                        { title: "Anatomy of a Digital Beast", content: `<h3 class="text-4xl font-black text-pup-maroon">Let's Open the Box!</h3><p class="mt-4 text-xl text-gray-700">Last week, we learned what a computer IS. This week, we're taking one apart (figuratively!) to see what's inside. We are exploring the world of <strong class="text-pup-maroon">Hardware</strong> – the collection of physical components that work together to bring your computer to life.</p><p class="mt-4 text-lg text-gray-700">Think of it like being a mechanic, but instead of an engine, we're looking at a motherboard.</p>` },
+                        { title: "The Motherboard: The PC's Main Hub", content: `<p class="text-xl text-gray-700 mb-6">Everything connects to the <strong class="text-pup-maroon">Motherboard</strong>. It's the foundation of the computer, a large circuit board that lets all the other parts communicate. It's like the map of a city, with roads connecting all the important buildings.</p><p class="text-lg font-semibold text-gray-800">Key parts of a motherboard:</p><ul class="list-disc list-inside space-y-2 mt-2 text-gray-700"><li><strong>CPU Socket:</strong> Where the 'brain' is installed.</li><li><strong>RAM Slots:</strong> Where the short-term memory sticks are inserted.</li><li><strong>PCIe Slots:</strong> For expansion cards like graphics cards.</li><li><strong>SATA Ports:</strong> To connect storage drives like SSDs and HDDs.</li><li><strong>I/O Panel:</strong> The ports on the back of your PC (USB, HDMI, etc.).</li></ul>` },
+                        { title: "The CPU: The Brains of the Operation", content: `<p class="text-xl text-gray-700 mb-6">The <strong class="text-pup-maroon">Central Processing Unit (CPU)</strong> is a small chip that is the engine of your computer. It executes billions of instructions per second to run your programs.</p><p class="text-lg text-gray-700">Imagine a chef in a kitchen. The recipe is the program, and the chef (CPU) reads each instruction and performs the action (chops vegetables, stirs the pot). The faster the chef, the quicker the meal is ready.</p><div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4"><div class="bg-gray-50 p-4 rounded-lg"><strong>Clock Speed (GHz):</strong> How many cycles (instructions) it can run per second. Higher is generally better.</div><div class="bg-gray-50 p-4 rounded-lg"><strong>Cores:</strong> The number of independent processors on the chip. More cores means it can multitask better (like having multiple chefs).</div></div>` },
+                        { title: "RAM: The High-Speed Workspace", content: `<p class="text-xl text-gray-700 mb-6"><strong class="text-pup-maroon">Random Access Memory (RAM)</strong> is your computer's short-term memory. It's where the computer temporarily stores the data for the applications you are currently running.</p><p class="text-lg text-gray-700">Think of it as your desk. When you work on a project, you take your books and papers (data) out of your cabinet (storage) and put them on your desk (RAM) to access them quickly. When you're done, you put them back. If the power goes out, your desk is cleared!</p><div class="mt-6 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Key Concept:</p><p class="text-blue-700">RAM is <strong class="font-semibold">volatile</strong>, meaning it needs power to hold data. More RAM allows you to run more applications smoothly at the same time.</p></div>` },
+                        { title: "Storage: Long-Term Memory", content: `<p class="text-xl text-gray-700 mb-6">This is where your files, operating system, and programs are kept permanently. Unlike RAM, storage is <strong class="text-pup-maroon">non-volatile</strong> – it keeps your data even when the power is off.</p><p class="text-lg font-semibold text-gray-800">The two main types are:</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4"><div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-xl">HDD (Hard Disk Drive)</h4><p class="text-sm mt-2">Uses a spinning platter and a mechanical arm to read/write data. Think of a record player. It's slower, but offers more storage for less money.</p></div><div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-xl">SSD (Solid-State Drive)</h4><p class="text-sm mt-2">Uses flash memory chips with no moving parts. It's like a very large, very fast USB drive. Your computer boots up and opens programs much faster with an SSD.</p></div></div>` },
+                        { title: "The GPU: Powering Your Pixels", content: `<p class="text-xl text-gray-700 mb-6">The <strong class="text-pup-maroon">Graphics Processing Unit (GPU)</strong>, or graphics card, is a specialized processor designed to handle everything you see on your screen. While a CPU has a few powerful cores, a GPU has thousands of simpler cores that work together.</p><p class="text-lg text-gray-700">It's the difference between a master artist (CPU) painting one masterpiece, and an army of painters (GPU) each painting one pixel at the same time. This is why GPUs are essential for:</p><ul class="list-disc list-inside space-y-2 mt-4 text-gray-800"><li>Video Games</li><li>Video Editing and Animation</li><li>Scientific Simulations and AI</li></ul>` },
+                        { title: "Peripherals & Ports", content: `<p class="text-xl text-gray-700 mb-6">Peripherals are the devices we connect to the outside of the computer case. They plug into <strong class="text-pup-maroon">Ports</strong>, which are the connection points on the motherboard's I/O panel.</p><p class="text-lg font-semibold text-gray-800">Common Ports:</p><ul class="list-disc list-inside space-y-2 mt-2 text-gray-700"><li><strong>USB (Universal Serial Bus):</strong> The most common port for connecting mice, keyboards, printers, phones, and flash drives. (Types: USB-A, USB-C)</li><li><strong>HDMI/DisplayPort:</strong> Used to connect your monitor or a TV.</li><li><strong>Ethernet Port:</strong> For a wired internet connection.</li><li><strong>Audio Jacks:</strong> For connecting speakers, headphones, and microphones.</li></ul>` },
+                        { title: "Keeping It Cool", content: `<p class="text-xl text-gray-700 mb-6">Computer components, especially the CPU and GPU, generate a lot of heat when they work hard. If they get too hot, they slow down or can even be damaged. That's why every PC needs a cooling system.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4"><div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-xl">Fans</h4><p class="text-sm mt-2">Case fans pull cool air in and push hot air out. The CPU and GPU have their own dedicated fans.</p></div><div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-xl">Heatsinks</h4><p class="text-sm mt-2">A block of metal with many fins that sits on top of the CPU. It absorbs the heat, and the fins provide a large surface area for the fan to blow the heat away.</p></div></div>` },
+                        { title: "Let's Review: Week 2", content: `<p class="text-xl text-gray-700 mb-6">Let's recap the key hardware components!</p><ul class="list-decimal list-inside space-y-3 text-lg text-gray-800"><li>The <strong class="text-pup-maroon">Motherboard</strong> is the central hub connecting all parts.</li><li>The <strong class="text-pup-maroon">CPU</strong> is the brain that executes instructions.</li><li><strong class="text-pup-maroon">RAM</strong> is the fast, temporary workspace (volatile memory).</li><li><strong class="text-pup-maroon">Storage (SSD/HDD)</strong> is the slow, permanent home for your files (non-volatile).</li><li>The <strong class="text-pup-maroon">GPU</strong> is a special processor for handling graphics and visuals.</li><li><strong class="text-pup-maroon">Ports</strong> like USB and HDMI allow us to connect external devices.</li></ul>` },
                         { 
                             title: "Week 2 Exercises", 
                             exercises: [
@@ -263,20 +235,499 @@
                 'references': {
                     title: 'References',
                     html: `
-                        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
-                            <h2 class="text-2xl sm:text-3xl font-black text-pup-maroon mb-6 border-b-4 border-pup-maroon pb-3">References & Further Reading</h2>
+                        <div class="bg-white p-8 rounded-xl shadow-lg">
+                            <h2 class="text-3xl font-black text-pup-maroon mb-6 border-b-4 border-pup-maroon pb-3">References & Further Reading</h2>
                             <ul class="list-disc list-inside space-y-3 text-gray-700">
-                                <li>Floyd, Thomas L. (205). <em>Digital Fundamentals: A Systems Approach.</em> Pearson Education Limited.</li>
+                                <li>Floyd, Thomas L. (2015). <em>Digital Fundamentals: A Systems Approach.</em> Pearson Education Limited.</li>
                                 <li>Matthes, Eric. (2019). <em>Python Crash Course: A Hands-On, Project-based Introduction to Programming.</em></li>
                                 <li>GCFGlobal. (n.d.). <em>Computer Basics.</em> Retrieved from https://edu.gcfglobal.org/en/computerbasics/</li>
                                 <li>TutorialsPoint. (n.d.). <em>Computer Fundamentals Tutorial.</em> Retrieved from https://www.tutorialspoint.com/computer_fundamentals/index.htm</li>
                             </ul>
                         </div>`
                 }
+            },
+            'COMP002': {
+                'week-1-2': {
+                    title: 'Weeks 1-2: Intro to Programming',
+                    slides: [
+                        { title: "The Art of Instruction", content: `<h3 class="text-4xl font-black text-pup-maroon">Welcome to Computer Programming!</h3><p class="mt-4 text-xl text-gray-700">At its core, programming is about giving instructions. You are the boss, and the computer is your powerful but very literal employee. It will do *exactly* what you tell it to do, nothing more, nothing less. This course will teach you how to speak the computer's language to solve problems and create amazing things.</p><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Core Concept:</p><p class="text-blue-700">A <strong>Computer Program</strong> is a sequence of instructions written in a specific language that a computer can execute to perform a task.</p></div>`},
+                        { title: "Analogy: Programming as a Recipe", content: `<p class="text-xl text-gray-700 mb-6">Think of a computer program like a detailed cooking recipe. It has three main parts that directly relate to how programs work.</p><div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center"><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Ingredients (Input)</h4><p class="mt-2 text-gray-600">These are the data and resources your program needs to work with. (e.g., numbers, text from the user).</p></div><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Instructions (Processing)</h4><p class="mt-2 text-gray-600">This is the step-by-step logic of your program—the algorithm. (e.g., add the numbers, sort the text).</p></div><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Final Dish (Output)</h4><p class="mt-2 text-gray-600">This is the result that your program produces after processing the input. (e.g., the sum displayed on screen).</p></div></div>`},
+                        { title: "Programming Languages: Human vs. Machine", content: `<p class="text-xl text-gray-700 mb-6">We can't just talk to a computer in English or Filipino. We need a special language. These languages are a bridge between human ideas and the computer's electronic circuits.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-center"><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Low-Level Languages</h4><p class="mt-2 text-gray-600">Very close to the computer's native tongue (1s and 0s). Examples: Machine Code, Assembly. They are very fast but extremely difficult for humans to read and write.</p></div><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">High-Level Languages</h4><p class="mt-2 text-gray-600">Closer to human language, using English-like words and syntax. Examples: Java, Python, C++. They are easier to learn and use, and we let a special program translate them for the computer.</p></div></div>`},
+                        { title: "Language Translators: Compiler vs. Interpreter", content: `<p class="text-xl text-gray-700 mb-6">How does a high-level language become the 1s and 0s the computer understands? Through a translator program.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Compiler (e.g., Java)</h4><p class="mt-2 text-gray-600">Reads your entire program at once and translates it into a complete, executable file (like .exe on Windows). If it finds any errors, it reports them all after reading the whole file.</p><p class="mt-4 font-semibold">Analogy: Translating an entire book into another language before publishing.</p></div><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Interpreter (e.g., Python)</h4><p class="mt-2 text-gray-600">Reads your program one line at a time, translating and running each line before moving to the next. It stops as soon as it finds the first error.</p><p class="mt-4 font-semibold">Analogy: A live interpreter translating a speech as it happens.</p></div></div>`},
+                        { title: "Why Learn Java?", content: `<p class="text-xl text-gray-700 mb-6">Java is the chosen language for this course for several key reasons:</p><ul class="list-disc list-inside space-y-3 text-lg text-gray-800"><li><strong class="text-pup-maroon">Platform Independent:</strong> Its slogan is "Write Once, Run Anywhere." A Java program can run on Windows, macOS, and Linux without being changed.</li><li><strong class="text-pup-maroon">Object-Oriented Programming (OOP):</strong> A powerful way of organizing code that we will learn later. It's a fundamental concept in modern software development.</li><li><strong class="text-pup-maroon">Industry Standard:</strong> Widely used in large companies for web applications, Android apps, and financial systems.</li><li><strong class="text-pup-maroon">Strongly-Typed:</strong> It forces you to be precise about your data, which helps catch errors early and builds good habits.</li></ul>`},
+                        { title: "The Programmer's Blueprint: The PDLC", content: `<p class="text-xl text-gray-700 mb-6">Professional programmers don't just start typing code! They follow a roadmap called the <strong>Program Development Life Cycle (PDLC)</strong> to ensure they build the right solution efficiently.</p><ol class="list-decimal list-inside space-y-3 text-lg text-gray-800"><li><strong>Problem Analysis:</strong> Understand the problem completely. What are the inputs? What should be the output? Are there any constraints?</li><li><strong>Program Design:</strong> Plan the logic. This is where we use tools like flowcharts and pseudocode. This is the most crucial step!</li><li><strong>Coding/Implementation:</strong> Write the actual program in a programming language (like Java). This is where you translate your design into code.</li><li><strong>Testing & Debugging:</strong> Find and fix errors (called 'bugs') in the program. Does it work for all scenarios?</li><li><strong>Maintenance:</strong> Update and improve the program over time after it has been deployed.</li></ol>`},
+                        { title: "PDLC Step 1: Problem Analysis", content: `<p class="text-xl text-gray-700 mb-6">Before you can solve a problem, you must understand it. Let's break down a simple request.</p><div class="bg-gray-50 p-6 rounded-lg border-l-4 border-pup-maroon"><h3 class="text-2xl font-bold text-gray-800 mb-2">Problem Statement:</h3><p class="text-lg text-gray-600">Create a program to calculate the area of a rectangle.</p></div><ul class="mt-6 space-y-3 text-lg"><li><strong class="text-blue-600">What are the inputs?</strong> We need the length and the width of the rectangle.</li><li><strong class="text-green-600">What is the process?</strong> The formula: Area = Length × Width.</li><li><strong class="text-purple-600">What is the output?</strong> The calculated area.</li><li><strong class="text-yellow-600">What are the constraints?</strong> Length and width must be positive numbers.</li></ul>`},
+                        { title: "PDLC Step 2: Program Design", content: `<p class="text-xl text-gray-700 mb-6">This is where we create the blueprint for our code. A good design makes coding much easier and results in fewer bugs. Our main tools for design are algorithms, flowcharts, and pseudocode.</p><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Key Idea:</p><p class="text-blue-700">Spending more time on design will save you a lot of time during coding and debugging. Never skip the design phase!</p></div>`},
+                        { title: "Designing Logic: Algorithms", content: `<p class="text-xl text-gray-700 mb-6">An <strong>Algorithm</strong> is a finite, step-by-step procedure for solving a problem. It must be clear, unambiguous, and effective.</p><p class="text-lg font-semibold text-gray-800">Algorithm: Find the largest of three numbers (A, B, C)</p><ul class="list-disc list-inside space-y-2 mt-2 text-gray-700"><li>Start</li><li>Read the three numbers: A, B, C.</li><li>If A is greater than B AND A is greater than C, then A is the largest.</li><li>Else if B is greater than A AND B is greater than C, then B is the largest.</li><li>Else, C is the largest.</li><li>Display the largest number.</li><li>End</li></ul>`},
+                        { title: "Activity: The Human Robot", content: `<p class="text-xl text-gray-700 mb-6">Let's demonstrate the importance of precise algorithms with a class activity.</p><div class="bg-gray-100 p-6 rounded-lg text-center"><h4 class="text-2xl font-bold text-pup-maroon">Task: The Human Robot</h4><p class="mt-2 text-gray-600">One student volunteer will be the 'robot'. The rest of the class are the 'programmers'. The programmers must write down a series of simple, exact instructions (e.g., "take one step forward", "turn left 90 degrees", "raise right arm") to make the robot walk from their chair to the classroom door and knock. The robot can ONLY perform the actions exactly as written. Any ambiguity or missing step will cause the 'program' to fail. This teaches us that computers don't assume anything!</p></div>`},
+                        { title: "Visualizing Logic: Flowcharts", content: `<p class="text-xl text-gray-700 mb-6">A <strong>Flowchart</strong> is a graphical representation of an algorithm. It's like a map for your program's logic.</p>
+                            <p class="text-lg font-semibold text-gray-800">Common Symbols</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4 items-start">
+                                <div class="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
+                                    <div class="w-40 h-20 bg-pup-gold flex items-center justify-center text-pup-maroon font-bold rounded-full text-lg">Start / End</div>
+                                    <p class="mt-2 text-lg font-bold text-gray-800">Terminator</p>
+                                    <p class="text-center text-gray-600">Marks the beginning or end of the program's logic.</p>
+                                </div>
+                                <div class="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
+                                    <div style="transform: skew(-20deg);" class="w-40 h-20 bg-blue-200 flex items-center justify-center text-blue-800 font-bold text-lg">
+                                        <span style="transform: skew(20deg);">Input / Output</span>
+                                    </div>
+                                    <p class="mt-2 text-lg font-bold text-gray-800">Data</p>
+                                    <p class="text-center text-gray-600">Represents data being input by a user or output by the program.</p>
+                                </div>
+                                <div class="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
+                                    <div class="w-40 h-20 bg-green-200 flex items-center justify-center text-green-800 font-bold text-lg">
+                                        Process
+                                    </div>
+                                    <p class="mt-2 text-lg font-bold text-gray-800">Process</p>
+                                    <p class="text-center text-gray-600">Represents a calculation or an operation being performed.</p>
+                                </div>
+                                <div class="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
+                                    <div style="transform: rotate(45deg);" class="w-24 h-24 bg-red-200 flex items-center justify-center text-red-800 font-bold text-lg">
+                                        <span style="transform: rotate(-45deg);">Decision</span>
+                                    </div>
+                                    <p class="mt-2 text-lg font-bold text-gray-800">Decision</p>
+                                    <p class="text-center text-gray-600">Represents a point where a yes/no decision is made.</p>
+                                </div>
+                            </div>`},
+                        { title: "Writing Logic: Pseudocode", content: `<p class="text-xl text-gray-700 mb-6"><strong>Pseudocode</strong> is a text-based design tool that uses a simplified, English-like syntax to outline an algorithm before writing actual code.</p><p class="text-lg font-semibold text-gray-800">Pseudocode: Find the largest of three numbers</p><div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>START
+    READ A, B, C
+    IF A > B AND A > C THEN
+        PRINT A
+    ELSE IF B > A AND B > C THEN
+        PRINT B
+    ELSE
+        PRINT C
+    ENDIF
+END</code></pre></div>`},
+                        { title: "What is Digital Data?", content: `<p class="text-xl text-gray-700 mb-6">All data in a computer—text, numbers, images, sound—is stored as numbers. Specifically, it's stored in binary format as bits and bytes.</p><ul class="list-disc list-inside space-y-2 mt-2 text-gray-700"><li><strong>Bit:</strong> The smallest unit of data, a 0 or a 1.</li><li><strong>Byte:</strong> A group of 8 bits. One byte can represent 256 different values (2^8). A single character, like 'A', usually takes up one byte.</li><li><strong>ASCII/Unicode:</strong> Standards that map characters to specific numbers. For example, in ASCII, the number 65 represents the character 'A'.</li></ul>`},
+                        { title: "Software Concepts: System vs. Application", content: `<p class="text-xl text-gray-700 mb-6">The software on a computer can be divided into two main categories.</p><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">System Software</h4><p class="mt-2 text-gray-600">Manages the computer hardware and provides a platform for applications to run. You don't usually interact with it directly.</p><p class="mt-4 font-semibold">Examples: Windows, macOS, Linux, device drivers.</p></div><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">Application Software</h4><p class="mt-2 text-gray-600">Programs designed to perform specific tasks for the user. The programs we will write in this class are application software.</p><p class="mt-4 font-semibold">Examples: Microsoft Word, Google Chrome, Spotify, video games.</p></div></div>`},
+                        { 
+                            title: "Weeks 1-2 Exercises", 
+                            exercises: [
+                                { q: "A program that translates high-level code all at once is a ______.", a: "Compiler" },
+                                { q: "What is the slogan for Java's platform independence?", a: "Write Once, Run Anywhere" },
+                                { q: "What is the most crucial step in the PDLC?", a: "Program Design" },
+                                { q: "What is the flowchart symbol for input/output?", a: "Parallelogram" },
+                                { q: "How many bits are in a byte?", a: "8" },
+                                { q: "Is Microsoft Word an example of System or Application software?", a: "Application" },
+                                { q: "Which tool uses English-like phrases to represent logic?", a: "Pseudocode" }
+                            ]
+                        }
+                    ]
+                },
+                'week-3-4': {
+                    title: 'Weeks 3-4: Logic & Formulation',
+                    slides: [
+                        { title: "Deep Dive: Logic Formulation", content: `<h3 class="text-4xl font-black text-pup-maroon">Mastering the Blueprint</h3><p class="mt-4 text-xl text-gray-700">This week, we focus entirely on the 'Design' phase. A flawed logical blueprint will always lead to a flawed program. We will practice turning real-world problems into clear, unambiguous steps using our design tools.</p>`},
+                        { title: "The 3 Building Blocks of Logic", content: `<p class="text-xl text-gray-700 mb-6">Amazingly, any algorithm, no matter how complex, can be constructed from just three basic control structures.</p><div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center"><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">1. Sequence</h4><p class="mt-2 text-gray-600">A series of steps executed one after another in a specific order.</p></div><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">2. Selection</h4><p class="mt-2 text-gray-600">A decision or a question. A choice is made between two or more paths. (IF-THEN-ELSE)</p></div><div class="bg-gray-100 p-6 rounded-lg"><h4 class="text-2xl font-bold text-pup-maroon">3. Iteration</h4><p class="mt-2 text-gray-600">Repeating a set of instructions until a condition is met. (Looping)</p></div></div>`},
+                        { title: "Technique: Decomposing Problems", content: `<p class="text-xl text-gray-700 mb-6">Don't try to solve a big problem all at once. Break it down into smaller, more manageable sub-problems. Solve each small piece, and then combine the solutions.</p><p class="text-lg font-semibold text-gray-800">Problem: Calculate an employee's net pay.</p><ul class="list-disc list-inside space-y-2 mt-2 text-gray-700"><li><strong>Sub-problem 1:</strong> Calculate the gross pay (hours worked * rate per hour).</li><li><strong>Sub-problem 2:</strong> Calculate the deductions (tax, SSS, etc.).</li><li><strong>Sub-problem 3:</strong> Calculate the net pay (gross pay - deductions).</li><li><strong>Sub-problem 4:</strong> Display the final net pay.</li></ul>`},
+                        { title: "Scenario 1: Simple Calculator (Analysis)", content: `<p class="text-xl text-gray-700 mb-6"><strong>Problem:</strong> Create a program that acts as a simple four-function calculator.</p><div class="bg-gray-50 p-6 rounded-lg border-l-4 border-pup-maroon"><ul class="space-y-3 text-lg"><li><strong class="text-blue-600">Input:</strong> A first number, a second number, and an operator (+, -, *, /).</li><li><strong class="text-green-600">Process:</strong> Check which operator was entered. Perform the corresponding calculation.</li><li><strong class="text-purple-600">Output:</strong> The result of the calculation, or an error message if division by zero occurs.</li></ul></div>`},
+                        { title: "Calculator Logic (Sequence)", content: `<p class="text-xl text-gray-700 mb-6">First, let's design the logic for just one operation: addition. This is a simple sequence.</p><p class="text-lg font-semibold text-gray-800">Pseudocode (Addition Only)</p><div class="font-mono bg-gray-800 text-white p-4 rounded-lg"><pre><code>START
+    PRINT "Enter first number:"
+    READ num1
+    PRINT "Enter second number:"
+    READ num2
+    result = num1 + num2
+    PRINT "The sum is: " + result
+END</code></pre></div>`},
+                        { title: "Calculator Logic (Selection)", content: `<p class="text-xl text-gray-700 mb-6">Now, let's add the selection logic to handle all four operators.</p><p class="text-lg font-semibold text-gray-800">Pseudocode (All Operations)</p><div class="font-mono bg-gray-800 text-white p-4 rounded-lg"><pre><code>... (read num1, num2)
+PRINT "Enter operator (+, -, *, /):"
+READ operator
+
+IF operator == '+' THEN
+    result = num1 + num2
+ELSE IF operator == '-' THEN
+    result = num1 - num2
+ELSE IF operator == '*' THEN
+    result = num1 * num2
+ELSE IF operator == '/' THEN
+    IF num2 == 0 THEN
+        PRINT "Error: Cannot divide by zero."
+    ELSE
+        result = num1 / num2
+    ENDIF
+ELSE
+    PRINT "Invalid operator."
+ENDIF
+
+PRINT "Result: " + result
+...</code></pre></div>`},
+                        { title: "Calculator Flowchart (Selection)", content: `<p class="text-xl text-gray-700 mb-6">Here's what that selection logic looks like as a flowchart. Notice the nested decision for the division-by-zero check.</p>
+                            <div class="flex justify-center p-4 bg-white rounded-lg shadow-inner">
+                                <svg viewBox="0 0 400 750" class="w-full h-auto">
+                                    <defs>
+                                        <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b5563"></path>
+                                        </marker>
+                                    </defs>
+                                    <style>
+                                        .flow-text { font-family: 'Inter', sans-serif; font-size: 14px; text-anchor: middle; fill: #1f2937; }
+                                        .flow-shape { stroke: #4b5563; stroke-width: 2; }
+                                        .flow-line { stroke: #4b5563; stroke-width: 2; marker-end: url(#arrow); }
+                                    </style>
+                                    <!-- Start -->
+                                    <ellipse cx="200" cy="30" rx="60" ry="20" class="flow-shape" fill="#fefce8"></ellipse>
+                                    <text x="200" y="35" class="flow-text">Start</text>
+                                    <line x1="200" y1="50" x2="200" y2="80" class="flow-line"></line>
+                                    <!-- Input -->
+                                    <path d="M 120 80 L 280 80 L 270 120 L 110 120 Z" class="flow-shape" fill="#e0f2fe"></path>
+                                    <text x="200" y="105" class="flow-text">Input num1, num2, op</text>
+                                    <line x1="200" y1="120" x2="200" y2="150" class="flow-line"></line>
+                                    <!-- Decision 1 -->
+                                    <path d="M 200 150 L 270 190 L 200 230 L 130 190 Z" class="flow-shape" fill="#fee2e2"></path>
+                                    <text x="200" y="195" class="flow-text">op == '+'?</text>
+                                    <line x1="270" y1="190" x2="320" y2="190" class="flow-line"></line>
+                                    <text x="295" y="185" class="flow-text" font-size="12">No</text>
+                                    <line x1="200" y1="230" x2="200" y2="260" class="flow-line"></line>
+                                    <text x="210" y="250" class="flow-text" font-size="12">Yes</text>
+                                    <!-- Process 1 -->
+                                    <rect x="150" y="260" width="100" height="40" class="flow-shape" fill="#dcfce7"></rect>
+                                    <text x="200" y="285" class="flow-text">res = num1+num2</text>
+                                    <line x1="250" y1="280" x2="300" y2="280" class="flow-line"></line>
+                                    <line x1="300" y1="280" x2="300" y2="650" class="flow-line"></line>
+                                    <line x1="300" y1="650" x2="200" y2="650" class="flow-line"></line>
+                                    <!-- Decision 2 -->
+                                    <path d="M 320 190 L 370 220 L 320 250 L 270 220 Z" class="flow-shape" fill="#fee2e2" transform="translate(30, -30)"></path>
+                                    <text x="350" y="195" class="flow-text">op == '-'?</text>
+                                    <line x1="380" y1="190" x2="380" y2="290" class="flow-line" transform="translate(20, 0)"></line>
+                                    <text x="405" y="240" class="flow-text" font-size="12">No</text>
+                                    <line x1="350" y1="220" x2="350" y2="340" class="flow-line"></line>
+                                    <text x="360" y="280" class="flow-text" font-size="12">Yes</text>
+                                    <!-- Process 2 -->
+                                    <rect x="300" y="340" width="100" height="40" class="flow-shape" fill="#dcfce7"></rect>
+                                    <text x="350" y="365" class="flow-text">res = num1-num2</text>
+                                    <line x1="350" y1="380" x2="350" y2="610" class="flow-line"></line>
+                                    <line x1="350" y1="610" x2="300" y2="610" class="flow-line"></line>
+                                    <!-- Decision 3 and so on would continue the pattern -->
+                                    <text x="200" y="450" class="flow-text" fill="#9ca3af">[... similar logic for * and /]</text>
+                                    <!-- Output -->
+                                    <path d="M 120 670 L 280 670 L 270 710 L 110 710 Z" class="flow-shape" fill="#e0f2fe"></path>
+                                    <text x="200" y="695" class="flow-text">Print result</text>
+                                    <line x1="200" y1="710" x2="200" y2="730" class="flow-line"></line>
+                                    <!-- End -->
+                                    <ellipse cx="200" cy="740" rx="60" ry="20" class="flow-shape" fill="#fefce8"></ellipse>
+                                    <text x="200" y="745" class="flow-text">End</text>
+                                </svg>
+                            </div>`},
+                        { title: "Class Activity: Pseudocode Challenge", content: `<p class="text-xl text-gray-700 mb-6">Let's practice our design skills together.</p><div class="bg-gray-100 p-6 rounded-lg text-center"><h4 class="text-2xl font-bold text-pup-maroon">Task: Voter Eligibility</h4><p class="mt-2 text-gray-600">In groups, write the pseudocode for a program that asks for a user's age and citizenship. The program should then print "You are eligible to vote" only if the user is 18 or older AND their citizenship is "Filipino". Otherwise, it should print "You are not eligible to vote." We will review and compare the different solutions as a class.</p></div>`},
+                        { title: "Scenario 2: The Login System (Analysis)", content: `<p class="text-xl text-gray-700 mb-6"><strong>Problem:</strong> Design the logic for a basic user login system.</p><div class="bg-gray-50 p-6 rounded-lg border-l-4 border-pup-maroon"><ul class="space-y-3 text-lg"><li><strong class="text-blue-600">Input:</strong> A username and a password from the user.</li><li><strong class="text-green-600">Process:</strong> Compare the user's input against a stored, correct username and password.</li><li><strong class="text-purple-600">Output:</strong> A message: either "Access Granted" or "Access Denied".</li></ul></div>`},
+                        { title: "Login System Pseudocode", content: `<p class="text-xl text-gray-700 mb-6">The logic for this relies on a selection structure with a compound condition (checking two things at once).</p><div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>START
+    // Stored correct credentials
+    correctUser = "admin"
+    correctPass = "PUPManila_24"
+
+    PRINT "Enter username:"
+    READ inputUser
+    PRINT "Enter password:"
+    READ inputPass
+
+    IF inputUser == correctUser AND inputPass == correctPass THEN
+        PRINT "Access Granted"
+    ELSE
+        PRINT "Access Denied"
+    ENDIF
+END</code></pre></div>`},
+                        { title: "Login System Flowchart", content: `<p class="text-xl text-gray-700 mb-6">The flowchart shows a single decision diamond with the compound condition inside.</p><div class="flex justify-center"><img src="https://placehold.co/500x600/f4f4f5/7b2124?text=Login+System+Flowchart" alt="Login System Flowchart" class="rounded-lg shadow-md"></div>`},
+                        { title: "Scenario 3: Sum of 5 Numbers (Iteration)", content: `<p class="text-xl text-gray-700 mb-6"><strong>Problem:</strong> How can we get 5 numbers from a user and calculate their sum without declaring 5 different variables?</p><div class="bg-gray-50 p-6 rounded-lg border-l-4 border-pup-maroon"><p class="text-lg text-gray-600">This problem introduces the need for our third logic block: <strong>Iteration</strong> (looping). We need to repeat the action of "ask for a number and add it to a running total" a specific number of times.</p></div>`},
+                        { title: "Sum of 5 Numbers Pseudocode", content: `<p class="text-xl text-gray-700 mb-6">Here's how we can represent a loop in pseudocode.</p><div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>START
+    total = 0
+    counter = 1
+
+    WHILE counter <= 5
+        PRINT "Enter number " + counter + ":"
+        READ number
+        total = total + number
+        counter = counter + 1
+    ENDWHILE
+
+    PRINT "The total sum is: " + total
+END</code></pre></div>`},
+                        { title: "Sum of 5 Numbers Flowchart", content: `<p class="text-xl text-gray-700 mb-6">A loop in a flowchart is represented by an arrow that goes from a process back up to a previous decision diamond.</p><div class="flex justify-center"><img src="https://placehold.co/500x700/f4f4f5/7b2124?text=Looping+Sum+Flowchart" alt="Looping Sum Flowchart" class="rounded-lg shadow-md"></div>`},
+                         { 
+                            title: "Weeks 3-4 Exercises", 
+                            exercises: [
+                                { q: "What are the three fundamental control structures of logic?", a: "Sequence, Selection, Iteration" },
+                                { q: "Breaking a large problem into smaller pieces is called ______.", a: "Decomposition" },
+                                { q: "Design the pseudocode for a program that finds the average of three numbers.", a: "START READ n1,n2,n3 avg=(n1+n2+n3)/3 PRINT avg END" },
+                                { q: "Draw the flowchart for a program that asks for a password and gives the user 3 attempts.", a: "Requires a loop and a selection structure." }
+                            ]
+                        }
+                    ]
+                },
+                 'week-5-6': {
+                    title: 'Weeks 5-6: Java Program Basics',
+                    slides: [
+                        { title: "Setting up your Workshop", content: `<h3 class="text-4xl font-black text-pup-maroon">Time to Code!</h3><p class="mt-4 text-xl text-gray-700">We've planned our logic, now it's time to write our first program. We will use Java. To do this, you'll need the Java Development Kit (JDK) which contains the compiler, and an Integrated Development Environment (IDE) like VS Code or IntelliJ IDEA, which is a smart code editor.</p>`},
+                        { title: "Anatomy of a Java Program", content: `<p class="text-xl text-gray-700 mb-6">Every Java program has a basic structure. Let's break it down.</p><div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>// This is the class. The file must be named HelloWorld.java
+public class HelloWorld {
+
+    // This is the main method. It's the entry point of our program.
+    public static void main(String[] args) {
+    
+        // This line prints text to the console.
+        System.out.println("Hello, Iskolar ng Bayan!");
+        
+    }
+}</code></pre></div><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Code-Along: My First Java Program</p><p class="text-blue-700">Let's all open our IDEs. We will type this 'Hello, World!' program together. I will guide you through saving the file, compiling it (turning it into code the computer understands), and running it to see the output.</p></div>`},
+                        { title: "Memory Boxes: Variables", content: `<p class="text-xl text-gray-700 mb-6">A <strong>variable</strong> is a container for storing data values. Think of it as a labeled box where you can put information.</p><p class="text-lg font-semibold text-gray-800">Declaration and Initialization</p><div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>// 1. Declare a variable (create an empty box with a label)
+String name;
+int age;
+
+// 2. Assign a value to it (put something in the box)
+name = "Juan";
+age = 20;
+
+// Or do both at the same time (Initialization)
+String course = "BSIT";
+int yearLevel = 1;</code></pre></div>`},
+                        { title: "Data Types: What's in the Box?", content: `<p class="text-xl text-gray-700 mb-6">Java requires you to specify the type of data a variable will hold. This is called a 'statically-typed' language.</p><ul class="list-disc list-inside space-y-2 mt-2 text-gray-700"><li><strong>String:</strong> for text, like "Hello". Always in double quotes.</li><li><strong>int:</strong> for whole numbers, like 10, -5, 138.</li><li><strong>double:</strong> for numbers with decimal points, like 3.14, -15.5.</li><li><strong>char:</strong> for single characters, like 'A', '$'. Always in single quotes.</li><li><strong>boolean:</strong> for true or false values.</li></ul>`},
+                        { title: "Talking to the User: Scanner", content: `<p class="text-xl text-gray-700 mb-6">How do we get input from the user? We use a built-in Java tool called the <strong>Scanner</strong> class.</p><div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>import java.util.Scanner; // Need to import it first!
+
+public class UserInput {
+    public static void main(String[] args) {
+        Scanner myScanner = new Scanner(System.in); // Create a Scanner object
+
+        System.out.println("Enter your name:");
+        String name = myScanner.nextLine(); // Read a line of text
+
+        System.out.println("Enter your age:");
+        int age = myScanner.nextInt(); // Read an integer
+
+        System.out.println("Your name is " + name + " and you are " + age + " years old.");
+    }
+}</code></pre></div>`},
+                        { 
+                            title: "Weeks 5-6 Exercises", 
+                            exercises: [
+                                { q: "What is the file extension for a Java source file?", a: ".java" },
+                                { q: "Which method is the entry point for a Java program?", a: "main" },
+                                { q: "Declare an integer variable named 'score' and give it a value of 100.", a: "int score = 100;" },
+                                { q: "Which data type would you use for a student's GWA?", a: "double" },
+                                { q: "What class do you use to get input from the user?", a: "Scanner" }
+                            ]
+                        }
+                    ]
+                },
+                'week-7-8': {
+                    title: 'Weeks 7-8: Operators',
+                    slides: [
+                        { title: "The Tools of the Trade", content: `<h3 class="text-4xl font-black text-pup-maroon">Doing the Math!</h3><p class="mt-4 text-xl text-gray-700">Operators are special symbols that perform operations on variables and values. We use them to do everything from basic arithmetic to complex logical comparisons.</p>`},
+                        { title: "Arithmetic Operators", content: `<p class="text-xl text-gray-700 mb-6">These are used for mathematical calculations.</p>
+                            <ul class="list-disc list-inside space-y-2 mt-2 text-lg text-gray-700">
+                                <li><code>+</code> : Addition</li>
+                                <li><code>-</code> : Subtraction</li>
+                                <li><code>*</code> : Multiplication</li>
+                                <li><code>/</code> : Division</li>
+                                <li><code>%</code> : Modulo (returns the remainder of a division)</li>
+                            </ul>
+                            <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>int x = 10;
+int y = 3;
+System.out.println(x / y); // Output: 3 (integer division)
+System.out.println(x % y); // Output: 1 (the remainder)</code></pre></div>`},
+                        { title: "Assignment & Relational Operators", content: `
+                            <p class="text-xl text-gray-700 mb-4"><strong>Assignment Operators</strong> assign values.</p>
+                            <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                                <li><code>=</code> : Simple assignment (<code>x = 5</code>)</li>
+                                <li><code>+=</code> : Add and assign (<code>x += 3</code> is same as <code>x = x + 3</code>)</li>
+                                <li><code>-=</code>, <code>*=</code>, <code>/=</code> also exist.</li>
+                            </ul>
+                             <p class="text-xl text-gray-700 mb-4 mt-6"><strong>Relational Operators</strong> compare two values and return a boolean (true or false).</p>
+                             <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                                <li><code>==</code> : Equal to</li>
+                                <li><code>!=</code> : Not equal to</li>
+                                <li><code>></code> : Greater than</li>
+                                <li><code><</code> : Less than</li>
+                                <li><code>>=</code> : Greater than or equal to</li>
+                                <li><code><=</code> : Less than or equal to</li>
+                            </ul>`},
+                        { title: "Logical Operators", content: `<p class="text-xl text-gray-700 mb-6">These are used to combine conditional statements.</p>
+                             <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                                <li><code>&&</code> : Logical AND (returns true if both statements are true)</li>
+                                <li><code>||</code> : Logical OR (returns true if one of the statements is true)</li>
+                                <li><code>!</code> : Logical NOT (reverses the result, returns false if the result is true)</li>
+                            </ul>
+                            <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>int age = 20;
+boolean isStudent = true;
+// Is the person a student AND over 18?
+if (age > 18 && isStudent == true) {
+    System.out.println("Qualified for discount.");
+}</code></pre></div><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Activity: Operator Precedence</p><p class="text-blue-700">What is the output of <code>int result = 5 + 10 * 2;</code>? Is it 30 or 25? Let's discuss the 'order of operations' (PEMDAS) in programming and how parentheses <code>()</code> can be used to control it.</p></div>`},
+                        { 
+                            title: "Weeks 7-8 Exercises", 
+                            exercises: [
+                                { q: "What is the result of <code>25 % 4</code>?", a: "1" },
+                                { q: "Which operator checks for equality?", a: "==" },
+                                { q: "Write the shorthand for <code>x = x + 5;</code>", a: "x += 5;" },
+                                { q: "What does <code>(5 > 3 && 2 < 1)</code> evaluate to?", a: "false" },
+                                { q: "What does <code>!(true)</code> evaluate to?", a: "false" }
+                            ]
+                        }
+                    ]
+                },
+                 'week-9-10': {
+                    title: 'Weeks 9-10: Decision Structures',
+                    slides: [
+                        { title: "Making Choices in Code", content: `<h3 class="text-4xl font-black text-pup-maroon">At a Fork in the Road</h3><p class="mt-4 text-xl text-gray-700">Programs are not just straight lines of instructions. They need to make decisions and react to different situations. Decision structures, like <code>if</code> statements, allow our code to follow different paths based on certain conditions.</p>`},
+                        { title: "The if & if-else Statement", content: `<p class="text-xl text-gray-700 mb-6">The <code>if</code> statement executes a block of code if its condition is true. The <code>if-else</code> statement provides an alternative block of code to run if the condition is false.</p>
+                        <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>int grade = 88;
+
+if (grade >= 75) {
+    System.out.println("Congratulations, you passed!");
+} else {
+    System.out.println("You will need to retake the course.");
+}</code></pre></div>`},
+                        { title: "Chaining Conditions: if-else-if", content: `<p class="text-xl text-gray-700 mb-6">To check multiple conditions, we can use the <code>if-else-if</code> ladder.</p>
+                        <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>int score = 85;
+
+if (score >= 90) {
+    System.out.println("Grade: A");
+} else if (score >= 80) {
+    System.out.println("Grade: B");
+} else if (score >= 70) {
+    System.out.println("Grade: C");
+} else {
+    System.out.println("Grade: F");
+}</code></pre></div>`},
+                        { title: "The switch Statement", content: `<p class="text-xl text-gray-700 mb-6">The <code>switch</code> statement is a good alternative to a long <code>if-else-if</code> ladder when you are comparing a single variable against a list of specific values.</p>
+                        <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>int day = 4;
+String dayString;
+
+switch (day) {
+  case 1: dayString = "Monday"; break;
+  case 2: dayString = "Tuesday"; break;
+  case 3: dayString = "Wednesday"; break;
+  case 4: dayString = "Thursday"; break;
+  // ...and so on
+  default: dayString = "Invalid day";
+}
+System.out.println(dayString); // Output: Thursday
+</code></pre></div><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Activity: Choose Your Own Adventure</p><p class="text-blue-700">As a class, let's design a short text-based story. We'll start with a scenario, then prompt the user for a choice (e.g., "You see a cave. Do you enter? (1 for Yes, 2 for No)"). Based on their input, we will use <code>if-else</code> or <code>switch</code> statements to show them a different outcome.</p></div>`},
+                        { 
+                            title: "Weeks 9-10 Exercises", 
+                            exercises: [
+                                { q: "Write an if statement to check if a variable 'age' is 18 or over.", a: "if (age >= 18)" },
+                                { q: "When is the code inside an 'else' block executed?", a: "When the 'if' condition is false" },
+                                { q: "What is the purpose of the 'break' keyword in a switch statement?", a: "To exit the switch block" },
+                                { q: "Can you use a switch statement to check if a number is greater than 100?", a: "No (it's for specific values)" }
+                            ]
+                        }
+                    ]
+                },
+                 'week-11-15': {
+                    title: 'Weeks 11-15: Loop Structures',
+                    slides: [
+                        { title: "Doing Things Repeatedly", content: `<h3 class="text-4xl font-black text-pup-maroon">The Power of Repetition</h3><p class="mt-4 text-xl text-gray-700">Loops are one of the most powerful concepts in programming. They allow us to execute a block of code over and over again without having to write it multiple times. This is called 'iteration'.</p>`},
+                        { title: "The 'for' Loop", content: `<p class="text-xl text-gray-700 mb-6">The <code>for</code> loop is used when you know exactly how many times you want to loop.</p>
+                        <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>// This loop will run 5 times, printing numbers 0 through 4.
+
+// (initialization; condition; increment)
+for (int i = 0; i < 5; i++) {
+    System.out.println("Current number is: " + i);
+}</code></pre></div>`},
+                        { title: "The 'while' Loop", content: `<p class="text-xl text-gray-700 mb-6">The <code>while</code> loop is used when you want to loop as long as a condition is true. You might not know how many times it will run.</p>
+                        <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>import java.util.Scanner;
+Scanner scanner = new Scanner(System.in);
+String input = "";
+
+// Loop as long as the user has NOT typed "quit"
+while (!input.equals("quit")) {
+    System.out.print("Enter a message (type 'quit' to exit): ");
+    input = scanner.nextLine();
+    System.out.println("You said: " + input);
+}</code></pre></div>`},
+                        { title: "The 'do-while' Loop", content: `<p class="text-xl text-gray-700 mb-6">The <code>do-while</code> loop is similar to the <code>while</code> loop, but it guarantees that the code block will be executed at least once, because the condition is checked *after* the loop runs.</p>
+                        <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>int i = 10;
+
+do {
+  // This will print once, even though i is not less than 5
+  System.out.println(i);
+  i++;
+} while (i < 5);</code></pre></div>`},
+                        { title: "Breaking and Continuing", content: `<p class="text-xl text-gray-700 mb-6">We can control the flow of our loops with two special keywords.</p>
+                             <ul class="list-disc list-inside space-y-2 text-lg text-gray-700">
+                                <li><code>break</code> : Immediately exits the current loop.</li>
+                                <li><code>continue</code> : Skips the rest of the current iteration and jumps to the beginning of the next one.</li>
+                            </ul>
+                            <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>for (int i = 0; i < 10; i++) {
+    if (i == 4) {
+        continue; // Skip the number 4
+    }
+    if (i == 8) {
+        break; // Exit the loop when i is 8
+    }
+    System.out.println(i); // Will print 0,1,2,3,5,6,7
+}</code></pre></div><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Class Debugging Challenge</p><p class="text-blue-700">I will provide a piece of code with an 'infinite loop' (a loop that never ends). As a class, we need to analyze the code, find the logical error that prevents the loop's condition from ever becoming false, and fix it.</p></div>`},
+                        { 
+                            title: "Weeks 11-15 Exercises", 
+                            exercises: [
+                                { q: "Which loop is best for iterating a specific number of times?", a: "for loop" },
+                                { q: "How many times will a 'do-while' loop always run?", a: "At least once" },
+                                { q: "Which keyword exits a loop completely?", a: "break" },
+                                { q: "Which keyword skips the current iteration?", a: "continue" },
+                                { q: "Write a 'for' loop that counts down from 10 to 1.", a: "for(int i=10; i>=1; i--)" }
+                            ]
+                        }
+                    ]
+                },
+                 'week-16-17': {
+                    title: 'Weeks 16-17: Arrays',
+                    slides: [
+                        { title: "Storing Many Values", content: `<h3 class="text-4xl font-black text-pup-maroon">Organizing Our Data</h3><p class="mt-4 text-xl text-gray-700">So far, our variables can only hold one value at a time. What if we need to store a list of 100 student names? We use an <strong>Array</strong>. An array is a special variable that can hold multiple values of the same data type in a numbered list.</p>`},
+                        { title: "One-Dimensional Arrays", content: `<p class="text-xl text-gray-700 mb-6">Think of a 1D array as a single row of boxes. Access to each box is done through an 'index', which starts at 0.</p>
+                        <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>// Declare an array of strings that can hold 4 names
+String[] names = new String[4];
+
+// Assign values using the index
+names[0] = "Jose";
+names[1] = "Maria";
+names[2] = "Andres";
+names[3] = "Gabriela";
+
+// Access a value
+System.out.println(names[1]); // Output: Maria
+
+// Or declare and initialize at the same time
+int[] scores = {95, 88, 76, 92, 100};
+
+// Looping through an array is very common
+for (int i = 0; i < scores.length; i++) {
+    System.out.println("Score: " + scores[i]);
+}</code></pre></div>`},
+                        { title: "Multi-Dimensional Arrays", content: `<p class="text-xl text-gray-700 mb-6">If a 1D array is a row, a 2D array is a grid or a table with rows and columns. It's an array of arrays.</p>
+                        <div class="font-mono bg-gray-800 text-white p-4 rounded-lg mt-4"><pre><code>// A 2x3 integer array (2 rows, 3 columns)
+int[][] matrix = { {1, 2, 3}, {4, 5, 6} };
+
+// Accessing an element requires two indices: [row][column]
+System.out.println(matrix[1][2]); // Output: 6 (second row, third column)
+
+// We use nested loops to iterate through it
+for (int i = 0; i < 2; i++) { // For each row
+    for (int j = 0; j < 3; j++) { // For each column
+        System.out.print(matrix[i][j] + " ");
+    }
+    System.out.println(); // New line after each row
+}</code></pre></div><div class="mt-8 student-tip p-4 rounded-lg"><p class="font-bold text-blue-800">Activity: Data Sorter</p><p class="text-blue-700">I will give you an array of integers: <code>{23, 4, 56, 12, 9, 42}</code>. Your task is to write a program that uses a loop to go through this array and find the highest number, the lowest number, and the average of all numbers.</p></div>`},
+                        { 
+                            title: "Weeks 16-17 Exercises", 
+                            exercises: [
+                                { q: "What is the index of the first element in an array?", a: "0" },
+                                { q: "How do you find the number of elements in an array named 'data'?", a: "data.length" },
+                                { q: "Declare an array of integers that can hold 10 numbers.", a: "int[] numbers = new int[10];" },
+                                { q: "In a 2D array `matrix[3][4]`, how do you access the element in the first row and second column?", a: "matrix[0][1]" }
+                            ]
+                        }
+                    ]
+                }
             }
         };
 
-        // --- ELEMENTS ---
+        // --- GLOBAL VARIABLES & ELEMENT SELECTORS ---
+        let activeSlide = 0;
+        let slides = [];
+        let currentCourse = null;
+        let questionToReveal = null;
+
         const goBackBtn = document.getElementById('go-back-btn');
         const landingPage = document.getElementById('landing-page');
         const courseGrid = landingPage.querySelector('.grid');
@@ -290,9 +741,7 @@
         const mainContent = document.getElementById('main-content');
         const contentArea = document.getElementById('content-area');
         const sidebarNav = document.getElementById('sidebar-nav');
-        const sidebarExportSection = document.getElementById('sidebar-export-section');
         const courseSidebarTitle = document.getElementById('course-sidebar-title');
-        const pdfLoader = document.getElementById('pdf-loader');
 
         const adminPasswordModal = document.getElementById('admin-password-modal');
         const adminPasswordInput = document.getElementById('admin-password-input');
@@ -300,8 +749,11 @@
         const submitAdminPasswordBtn = document.getElementById('submit-admin-password');
         const cancelAdminPasswordBtn = document.getElementById('cancel-admin-password');
         
-        // --- FUNCTIONS ---
+        // --- CORE FUNCTIONS ---
 
+        /**
+         * Initializes the application, populates course cards, and sets up event listeners.
+         */
         function init() {
             populateCourseCards();
             cancelPasswordBtn.addEventListener('click', hidePasswordModal);
@@ -314,6 +766,9 @@
             adminPasswordInput.addEventListener('keyup', (e) => { if(e.key === 'Enter') checkAdminPasswordForAnswer(); });
         }
 
+        /**
+         * Dynamically creates and displays course selection cards on the landing page.
+         */
         function populateCourseCards() {
             courseGrid.innerHTML = '';
             for (const key in courses) {
@@ -327,15 +782,21 @@
             }
         }
         
+        /**
+         * Handles the selection of a course, storing its data and showing the password modal.
+         * @param {string} key - The key of the selected course from the 'courses' object.
+         */
         function handleCourseSelection(key) {
             currentCourse = { key, ...courses[key] };
             selectedCourseTitle.textContent = `${currentCourse.title} (${key.split('/')[0].trim()})`;
             showPasswordModal();
         }
 
+        // --- MODAL VISIBILITY FUNCTIONS ---
+
         function showPasswordModal() {
             passwordModal.classList.remove('hidden');
-            setTimeout(() => passwordModalContent.classList.add('scale-100'), 50);
+            setTimeout(() => passwordModalContent.classList.add('scale-100'), 50); // For transition
             passwordInput.value = '';
             passwordError.classList.add('hidden');
             passwordInput.focus();
@@ -359,6 +820,11 @@
             questionToReveal = null;
         }
 
+        // --- PASSWORD CHECKING FUNCTIONS ---
+
+        /**
+         * Checks the entered course password against the correct one or the admin password.
+         */
         function checkPassword() {
             const enteredPassword = passwordInput.value.trim();
             if (enteredPassword === currentCourse.password || enteredPassword === ADMIN_PASSWORD) {
@@ -373,12 +839,15 @@
             }
         }
         
+        /**
+         * Checks the admin password to reveal an exercise answer.
+         */
         function checkAdminPasswordForAnswer() {
             const enteredPassword = adminPasswordInput.value.trim();
             if (enteredPassword === ADMIN_PASSWORD) {
                 const answerSpan = document.getElementById(`answer-${questionToReveal}`);
                 const answerButton = document.getElementById(`button-${questionToReveal}`);
-                if (answerSpan) {
+                if (answerSpan && answerButton) {
                     answerSpan.style.display = 'inline';
                     answerButton.style.display = 'none';
                 }
@@ -391,6 +860,11 @@
             }
         }
         
+        // --- NAVIGATION & CONTENT LOADING ---
+
+        /**
+         * Transitions from the landing page to the main dashboard view.
+         */
         function launchDashboard() {
             hidePasswordModal();
             landingPage.classList.add('hidden');
@@ -405,9 +879,13 @@
                 return;
             }
             populateSidebar(courseContent);
-            loadContent('grading-system');
+            const firstContentKey = Object.keys(courseContent)[0];
+            loadContent(firstContentKey); 
         }
 
+        /**
+         * Returns the user to the main menu (landing page).
+         */
         function goToMainMenu() {
             mainContent.classList.add('hidden');
             goBackBtn.classList.add('hidden');
@@ -415,19 +893,25 @@
             currentCourse = null;
         }
 
+        /**
+         * Populates the sidebar navigation with links based on the course content.
+         * @param {object} courseContent - The content object for the current course.
+         */
         function populateSidebar(courseContent) {
             courseSidebarTitle.textContent = currentCourse.code;
             sidebarNav.innerHTML = '';
+            const firstContentKey = Object.keys(courseContent)[0];
             Object.keys(courseContent).forEach(key => {
                 const navItem = document.createElement('a');
                 navItem.href = '#';
                 navItem.dataset.contentId = key;
                 navItem.className = 'block px-4 py-2 rounded-md text-gray-700 hover:bg-gray-200 hover:text-pup-maroon font-medium transition';
                 navItem.textContent = courseContent[key].title;
-                if(key === 'grading-system') navItem.classList.add('bg-gray-200', 'text-pup-maroon');
+                if(key === firstContentKey) navItem.classList.add('bg-gray-200', 'text-pup-maroon');
                 navItem.addEventListener('click', (e) => {
                     e.preventDefault();
                     loadContent(key);
+                    // Update active link styling
                     sidebarNav.querySelectorAll('a').forEach(a => a.classList.remove('bg-gray-200', 'text-pup-maroon'));
                     navItem.classList.add('bg-gray-200', 'text-pup-maroon');
                 });
@@ -435,21 +919,25 @@
             });
         }
         
+        /**
+         * Loads content into the main area, either as a slideshow or as static HTML.
+         * @param {string} contentId - The key for the content to load.
+         */
         function loadContent(contentId) {
             const courseContent = content[currentCourse.code];
             const contentData = courseContent[contentId];
-            const exportSection = document.getElementById('sidebar-export-section');
-
+            
             if (contentData.slides) {
+                // Generate HTML for a slideshow
                 let slidesHtml = contentData.slides.map((slide, index) => {
                     let slideContent = slide.content;
                     if (slide.exercises) {
-                         slideContent = `<h3 class="text-2xl font-bold text-pup-maroon mb-6">Let's Answer in Chorus!</h3><div class="text-md sm:text-lg space-y-4 text-gray-800">
+                         slideContent = `<h3 class="text-2xl font-bold text-pup-maroon mb-4">Let's Answer in Chorus!</h3><div class="text-lg space-y-4 text-gray-800">
                             ${slide.exercises.map((ex, exIndex) => {
                                 const questionId = `${contentId}-${exIndex}`;
-                                return `<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 border-b">
-                                            <p class="mb-2 sm:mb-0">${exIndex + 1}. ${ex.q}</p>
-                                            <div class="self-end sm:self-center">
+                                return `<div class="flex items-center justify-between py-2 border-b">
+                                            <p>${exIndex + 1}. ${ex.q}</p>
+                                            <div>
                                                 <button id="button-${questionId}" data-question-id="${questionId}" class="show-answer-btn text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 rounded-md transition">Show Answer</button>
                                                 <span id="answer-${questionId}" class="answer-span">${ex.a}</span>
                                             </div>
@@ -457,107 +945,24 @@
                             }).join('')}
                          </div>`;
                     }
-                    return `<div class="slide ${index === 0 ? 'active' : ''}" data-slide-index="${index}"><h2 class="text-2xl sm:text-3xl font-black text-pup-maroon mb-6">${slide.title}</h2>${slideContent}</div>`;
+                    return `<div class="slide ${index === 0 ? 'active' : ''}" data-slide-index="${index}"><h2 class="text-3xl font-black text-pup-maroon mb-6">${slide.title}</h2>${slideContent}</div>`;
                 }).join('');
 
-                contentArea.innerHTML = `<div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg"><div id="slideshow-container" class="min-h-[450px] overflow-x-auto">${slidesHtml}</div><div class="flex justify-between items-center mt-8 pt-4 border-t"><button id="prev-slide" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-400 transition">&larr; Previous</button><div id="slide-indicator" class="text-gray-600 font-semibold text-sm sm:text-base"></div><button id="next-slide" class="bg-pup-maroon text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition">Next &rarr;</button></div></div>`;
+                contentArea.innerHTML = `<div class="bg-white p-8 rounded-xl shadow-lg"><div id="slideshow-container" class="min-h-[400px]">${slidesHtml}</div><div class="flex justify-between items-center mt-8 pt-4 border-t"><button id="prev-slide" class="bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-400 transition">&larr; Previous</button><div id="slide-indicator" class="text-gray-600 font-semibold"></div><button id="next-slide" class="bg-pup-maroon text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition">Next &rarr;</button></div></div>`;
                 
                 setupSlideshow();
-                
-                exportSection.innerHTML = `<button id="export-pdf-btn" data-lecture-id="${contentId}" class="w-full bg-pup-maroon text-white font-bold py-2 px-4 rounded-lg hover:bg-opacity-90 transition flex items-center justify-center space-x-2"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clip-rule="evenodd" /></svg><span>Export to PDF</span></button>`;
-                document.getElementById('export-pdf-btn').addEventListener('click', (e) => exportLectureToPdf(e.currentTarget.dataset.lectureId));
-                exportSection.classList.remove('hidden');
 
             } else {
+                // Load static HTML content
                 contentArea.innerHTML = contentData.html;
-                exportSection.classList.add('hidden');
-                exportSection.innerHTML = '';
             }
         }
-        
-        async function exportLectureToPdf(lectureId) {
-            pdfLoader.classList.remove('hidden');
-            const { jsPDF } = window.jspdf;
-            const lecture = content[currentCourse.code][lectureId];
 
-            if (!lecture || !lecture.slides) {
-                console.error("Lecture or slides not found!");
-                pdfLoader.classList.add('hidden');
-                return;
-            }
+        // --- SLIDESHOW FUNCTIONS ---
 
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'pt',
-                format: 'a4'
-            });
-            
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const margin = 72; // 1 inch = 72 points
-            const originalActiveSlide = activeSlide; 
-
-            for (let i = 0; i < slides.length; i++) {
-                if (i > 0) {
-                    pdf.addPage();
-                }
-
-                // Programmatically draw header
-                pdf.setFillColor('#7b2124'); // PUP Maroon
-                pdf.rect(0, 0, pdfWidth, 60, 'F');
-                pdf.setFont('Inter', 'bold');
-                pdf.setFontSize(22);
-                pdf.setTextColor('#FFFFFF');
-                pdf.text('Polytechnic University of the Philippines', pdfWidth / 2, 30, { align: 'center' });
-                pdf.setFont('Inter', 'normal');
-                pdf.setFontSize(12);
-                pdf.setTextColor('#DDDDDD');
-                pdf.text('Interactive Learning Portal by Jason Penalosa', pdfWidth / 2, 48, { align: 'center' });
-                
-                const slideElement = slides[i];
-                
-                slides.forEach(s => s.classList.remove('active'));
-                slideElement.classList.add('active');
-
-                await new Promise(resolve => setTimeout(resolve, 50));
-
-                const canvas = await html2canvas(slideElement, { scale: 2 });
-                const imgData = canvas.toDataURL('image/jpeg', 0.9);
-                
-                if (canvas.width === 0 || canvas.height === 0) {
-                    console.error("Skipping slide " + i + " due to rendering issue.");
-                    continue;
-                }
-                
-                const contentMarginTop = 60 + 20; // Header height + padding
-                const availableWidth = pdfWidth - (margin * 2);
-                const availableHeight = pdfHeight - contentMarginTop - margin;
-                
-                const aspectRatio = canvas.width / canvas.height;
-                let imgWidth = availableWidth;
-                let imgHeight = imgWidth / aspectRatio;
-
-                if (imgHeight > availableHeight) {
-                    imgHeight = availableHeight;
-                    imgWidth = imgHeight * aspectRatio;
-                }
-                
-                const x = (pdfWidth - imgWidth) / 2;
-                const y = contentMarginTop + (availableHeight - imgHeight) / 2;
-
-                pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
-            }
-            
-            slides.forEach(s => s.classList.remove('active'));
-            if (slides[originalActiveSlide]) {
-                slides[originalActiveSlide].classList.add('active');
-            }
-            
-            pdf.save(`${currentCourse.code}-${lectureId}.pdf`);
-            pdfLoader.classList.add('hidden');
-        }
-
-
+        /**
+         * Sets up the slideshow functionality, including event listeners for navigation and answer buttons.
+         */
         function setupSlideshow() {
             const slideshowContainer = document.getElementById('slideshow-container');
             slides = slideshowContainer.querySelectorAll('.slide');
@@ -579,6 +984,10 @@
             updateSlideIndicator();
         }
 
+        /**
+         * Changes the currently displayed slide.
+         * @param {number} direction - -1 for previous, 1 for next.
+         */
         function changeSlide(direction) {
             slides[activeSlide].classList.remove('active');
             activeSlide = (activeSlide + direction + slides.length) % slides.length;
@@ -586,10 +995,15 @@
             updateSlideIndicator();
         }
 
+        /**
+         * Updates the slide indicator text and button states (disabled/enabled).
+         */
         function updateSlideIndicator() {
             const indicator = document.getElementById('slide-indicator');
             const prevBtn = document.getElementById('prev-slide');
             const nextBtn = document.getElementById('next-slide');
+
+            if (!indicator || !prevBtn || !nextBtn) return;
 
             indicator.textContent = `Slide ${activeSlide + 1} of ${slides.length}`;
             prevBtn.disabled = activeSlide === 0;
@@ -601,6 +1015,7 @@
             nextBtn.classList.toggle('cursor-not-allowed', activeSlide === slides.length - 1);
         }
         
+        // --- Start the application ---
         init();
     });
 </script>
